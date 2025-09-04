@@ -1,0 +1,764 @@
+{% extends "base_readonly.html" %}
+
+{% block title %}Ticket Dashboard - Car Meet Community{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 animate-fade-in">
+                    <h1 class="hero-title">
+                        Ticket <span class="text-green">Dashboard</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        Comprehensive overview of ticket sales, analytics, and management
+                    </p>
+                </div>
+                <div class="col-lg-6 animate-slide-in">
+                    <div class="car-silhouette">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <!-- Stats Overview -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-3 animate-fade-in-delay">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <div class="stat-number" data-count="{{ total_tickets }}">0</div>
+                    <div class="stat-label">Total Tickets</div>
+                </div>
+            </div>
+
+            <div class="col-md-3 animate-fade-in-delay-2">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-number" data-count="{{ valid_tickets }}">0</div>
+                    <div class="stat-label">Valid Tickets</div>
+                </div>
+            </div>
+
+            <div class="col-md-3 animate-fade-in-delay">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-number">${{ "%.2f"|format(total_revenue) }}</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+            </div>
+
+            <div class="col-md-3 animate-fade-in-delay-2">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-number" data-count="{{ used_tickets }}">0</div>
+                    <div class="stat-label">Used Tickets</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Grid -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4 animate-fade-in">Quick Actions</h2>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay">
+                    <div class="feature-icon">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <h4>Buy Ticket</h4>
+                    <p>Purchase tickets for upcoming events</p>
+                    <a href="{{ url_for('ticket.buy_ticket') }}" class="btn btn-primary">
+                        <i class="fas fa-shopping-cart"></i> Buy Now
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay-2">
+                    <div class="feature-icon">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <h4>Scan Ticket</h4>
+                    <p>Validate tickets at events</p>
+                    <a href="{{ url_for('ticket.scan_ticket_page') }}" class="btn btn-primary">
+                        <i class="fas fa-camera"></i> Scan QR
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h4>View Events</h4>
+                    <p>Browse available events</p>
+                    <a href="{{ url_for('events') }}" class="btn btn-primary">
+                        <i class="fas fa-list"></i> Events
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay-2">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h4>Analytics</h4>
+                    <p>Detailed ticket analytics</p>
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-chart-line"></i> View Stats
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Tickets -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4 animate-fade-in">Recent Tickets</h2>
+                <div class="table-responsive">
+                    <table class="table table-hover modern-table">
+                        <thead>
+                            <tr>
+                                <th>Ticket ID</th>
+                                <th>Event</th>
+                                <th>Buyer</th>
+                                <th>Price</th>
+                                <th>Purchase Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in tickets %}
+                            <tr class="animate-fade-in-delay">
+                                <td>
+                                    <span class="ticket-id">{{ ticket[0] }}</span>
+                                </td>
+                                <td>
+                                    <div class="event-info">
+                                        <strong>{{ ticket[9] or 'Unknown Event' }}</strong>
+                                        <small class="text-muted">{{ ticket[10] or '' }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="buyer-info">
+                                        <strong>{{ ticket[2] }}</strong>
+                                        <small class="text-muted">{{ ticket[3] }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="price">${{ "%.2f"|format(ticket[5] or 0) }}</span>
+                                </td>
+                                <td>
+                                    <span class="date">{{ ticket[6] }}</span>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-{{ ticket[8] }}">
+                                        {{ ticket[8].title() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="{{ url_for('ticket.view_ticket', ticket_id=ticket[0]) }}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('ticket.get_qr_code', ticket_id=ticket[0]) }}"
+                                           class="btn btn-sm btn-outline-success" target="_blank">
+                                            <i class="fas fa-qrcode"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
+                                        <h5>No tickets found</h5>
+                                        <p class="text-muted">Start by purchasing your first ticket!</p>
+                                        <a href="{{ url_for('ticket.buy_ticket') }}" class="btn btn-primary">
+                                            <i class="fas fa-plus"></i> Buy Ticket
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ticket Status Distribution -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4 animate-fade-in">Ticket Status Distribution</h2>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="status-card valid animate-fade-in-delay">
+                            <div class="status-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="status-number">{{ valid_tickets }}</div>
+                            <div class="status-label">Valid</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill valid" style="width: {{ (valid_tickets / total_tickets * 100) if total_tickets > 0 else 0 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="status-card used animate-fade-in-delay-2">
+                            <div class="status-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="status-number">{{ used_tickets }}</div>
+                            <div class="status-label">Used</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill used" style="width: {{ (used_tickets / total_tickets * 100) if total_tickets > 0 else 0 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="status-card expired animate-fade-in-delay">
+                            <div class="status-icon">
+                                <i class="fas fa-times-circle"></i>
+                            </div>
+                            <div class="status-number">{{ expired_tickets }}</div>
+                            <div class="status-label">Expired</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill expired" style="width: {{ (expired_tickets / total_tickets * 100) if total_tickets > 0 else 0 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* CSS Variables */
+:root {
+    --primary-green: #00ff41;
+    --secondary-green: #00cc33;
+    --text-secondary: #888;
+    --bg-dark: #1a1a1a;
+}
+
+/* Modern Dashboard Styles */
+.hero-section {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+    padding: 80px 0;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary-green);
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 255, 65, 0.5), 0 0 40px rgba(0, 255, 65, 0.3);
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.2);
+}
+
+.car-silhouette {
+    text-align: center;
+    color: var(--primary-green);
+    font-size: 8rem;
+    opacity: 0.8;
+    filter: drop-shadow(0 0 20px rgba(0, 255, 65, 0.4));
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.4s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.stat-card:hover::before {
+    left: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 255, 65, 0.3);
+    border-color: var(--primary-green);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    color: var(--primary-green);
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-green);
+    font-family: 'Orbitron', monospace;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+}
+
+.stat-card:hover .stat-number {
+    transform: scale(1.05);
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.feature-card {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.4s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.feature-card:hover::before {
+    left: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 255, 65, 0.3);
+    border-color: var(--primary-green);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: var(--primary-green);
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+    transform: scale(1.1);
+}
+
+.feature-card h4 {
+    color: var(--primary-green);
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-shadow: 0 0 15px rgba(0, 255, 65, 0.4), 0 0 30px rgba(0, 255, 65, 0.2);
+}
+
+.feature-card p {
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+    text-shadow: 0 0 8px rgba(0, 255, 65, 0.2), 0 0 15px rgba(0, 255, 65, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+    border: none;
+    color: var(--bg-dark);
+    font-weight: 600;
+    padding: 12px 25px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 255, 65, 0.4);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--primary-green);
+    color: var(--primary-green);
+    background: transparent;
+    font-weight: 600;
+    padding: 8px 15px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-green);
+    color: var(--bg-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 65, 0.4);
+}
+
+.btn-outline-success {
+    border: 2px solid #28a745;
+    color: #28a745;
+    background: transparent;
+    font-weight: 600;
+    padding: 8px 15px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-outline-success:hover {
+    background: #28a745;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+}
+
+/* Modern Table Styles */
+.modern-table {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.05), rgba(0, 255, 65, 0.02));
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 255, 65, 0.2);
+}
+
+.modern-table thead th {
+    background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+    color: white;
+    border: none;
+    padding: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.modern-table tbody tr {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(0, 255, 65, 0.1);
+}
+
+.modern-table tbody tr:hover {
+    background: rgba(0, 255, 65, 0.1);
+    transform: scale(1.01);
+}
+
+.modern-table tbody td {
+    padding: 15px;
+    vertical-align: middle;
+    border: none;
+}
+
+.ticket-id {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: var(--primary-green);
+    background: rgba(0, 255, 65, 0.1);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.event-info strong {
+    color: var(--primary-green);
+    display: block;
+}
+
+.event-info small {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.buyer-info strong {
+    color: var(--primary-green);
+    display: block;
+}
+
+.buyer-info small {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.price {
+    font-weight: bold;
+    color: var(--primary-green);
+    font-size: 1.1rem;
+}
+
+.date {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-valid {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.status-used {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.status-expired {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+/* Status Cards */
+.status-card {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.4s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.status-card.valid {
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+.status-card.used {
+    border-color: rgba(255, 193, 7, 0.3);
+}
+
+.status-card.expired {
+    border-color: rgba(220, 53, 69, 0.3);
+}
+
+.status-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 255, 65, 0.3);
+}
+
+.status-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.status-card.valid .status-icon {
+    color: #28a745;
+}
+
+.status-card.used .status-icon {
+    color: #ffc107;
+}
+
+.status-card.expired .status-icon {
+    color: #dc3545;
+}
+
+.status-card:hover .status-icon {
+    transform: scale(1.1);
+}
+
+.status-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.status-card.valid .status-number {
+    color: #28a745;
+}
+
+.status-card.used .status-number {
+    color: #ffc107;
+}
+
+.status-card.expired .status-number {
+    color: #dc3545;
+}
+
+.status-card:hover .status-number {
+    transform: scale(1.05);
+}
+
+.status-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    margin-top: 15px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease;
+}
+
+.progress-fill.valid {
+    background: #28a745;
+}
+
+.progress-fill.used {
+    background: #ffc107;
+}
+
+.progress-fill.expired {
+    background: #dc3545;
+}
+
+/* Empty State */
+.empty-state {
+    padding: 40px 20px;
+}
+
+.empty-state h5 {
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+/* Counter animation */
+@keyframes countUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-count {
+    animation: countUp 1s ease-out;
+}
+</style>
+
+<script>
+// Counter animation for stats
+function animateCounters() {
+    const counters = document.querySelectorAll('.stat-number');
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-count'));
+        const increment = target / 50;
+        let current = 0;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                counter.textContent = target;
+                clearInterval(timer);
+            } else {
+                counter.textContent = Math.floor(current);
+            }
+        }, 20);
+        
+        counter.classList.add('animate-count');
+    });
+}
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate counters on load
+    setTimeout(animateCounters, 500);
+    
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.stat-card, .feature-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

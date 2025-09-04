@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Owner Profile - Suli Street Meet{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <!-- Owner Profile Hero Section -->
+    <div class="owner-hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 animate-fade-in">
+                    <h1 class="owner-hero-title">
+                        Owner <span class="text-green">Profile</span>
+                    </h1>
+                    <p class="owner-hero-subtitle">
+                        Meet the founder and leader of our car community
+                    </p>
+                    <div class="owner-badge">
+                        <i class="fas fa-crown"></i> Community Owner
+                    </div>
+                </div>
+                <div class="col-lg-6 animate-slide-in">
+                    <div class="owner-profile-image-container">
+                        {% if user[11] %}
+                            <img src="{{ user[11] }}" alt="Owner Profile Picture" class="owner-profile-image" id="ownerImage">
+                        {% else %}
+                            <div class="owner-profile-placeholder" id="ownerImage">
+                                <i class="fas fa-user-circle fa-5x"></i>
+                            </div>
+                        {% endif %}
+                        <div class="owner-glow-effect"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Me Section -->
+    <div class="about-me-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="about-me-card animate-fade-in-delay">
+                        <div class="about-me-header">
+                            <h2 class="about-me-title">
+                                <i class="fas fa-user"></i> About Me
+                            </h2>
+                        </div>
+                        <div class="about-me-content">
+                            <p class="about-me-text" id="aboutMeText">
+                                {{ user[10] if user|length > 10 and user[10] else 'Passionate car enthusiast and founder of Suli Street Meet. Dedicated to building a vibrant community for automotive lovers.' }}
+                            </p>
+                            <div class="about-me-stats">
+                                <div class="stat-item">
+                                    <h4 class="text-green">2024</h4>
+                                    <p>Founded</p>
+                                </div>
+                                <div class="stat-item">
+                                    <h4 class="text-green">500+</h4>
+                                    <p>Members</p>
+                                </div>
+                                <div class="stat-item">
+                                    <h4 class="text-green">50+</h4>
+                                    <p>Events</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-4">
+                <!-- Profile Card -->
+                <div class="card profile-card">
+                    <div class="card-body text-center">
+                        <div class="profile-avatar">
+                            {% if user[11] %}
+                                <img src="{{ user[11] }}" alt="Profile Picture" class="profile-picture" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <i class="fas fa-user-circle fa-5x" style="display: none;"></i>
+                            {% else %}
+                                <i class="fas fa-user-circle fa-5x"></i>
+                            {% endif %}
+                        </div>
+                        <h4 class="card-title">{{ user[4] }} {{ user[5] }}</h4>
+                        <p class="text-muted">@{{ user[1] }}</p>
+                        <p class="text-muted">{{ user[3] }}</p>
+                        <p class="text-muted">Member since: {{ user[6] }}</p>
+                        
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <h5>0</h5>
+                                <p>Vehicles</p>
+                            </div>
+                            <div class="stat-item">
+                                <h5>0</h5>
+                                <p>Events</p>
+                            </div>
+                            <div class="stat-item">
+                                <h5>Active</h5>
+                                <p>Status</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-8">
+                <!-- Profile Information -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Profile Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Username</label>
+                                    <p class="form-control-plaintext">{{ user[1] }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <p class="form-control-plaintext">{{ user[3] }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">First Name</label>
+                                    <p class="form-control-plaintext">{{ user[4] }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Last Name</label>
+                                    <p class="form-control-plaintext">{{ user[5] }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <p class="form-control-plaintext">{{ user[9] if user|length > 9 and user[9] else 'Not provided' }}</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Bio</label>
+                            <p class="form-control-plaintext">{{ user[10] if user|length > 10 and user[10] else 'No bio available' }}</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            <p class="form-control-plaintext">{{ user[12] if user|length > 12 and user[12] else 'Not provided' }}</p>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('edit_profile') }}" class="btn btn-primary">
+                                <i class="fas fa-edit"></i> Edit Profile
+                            </a>
+                            <a href="{{ url_for('change_password') }}" class="btn btn-secondary">
+                                <i class="fas fa-key"></i> Change Password
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Settings -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Account Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="{{ url_for('edit_profile') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-edit"></i> Edit Profile Information
+                            </a>
+                            <a href="{{ url_for('change_password') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-key"></i> Change Password
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="fas fa-bell"></i> Notification Preferences
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action text-danger">
+                                <i class="fas fa-trash"></i> Delete Account
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-card {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border: 1px solid rgba(0, 255, 65, 0.2);
+}
+
+.profile-avatar {
+    margin-bottom: 20px;
+}
+
+.profile-avatar i {
+    color: var(--primary-green);
+}
+
+.profile-picture {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-green);
+    transition: transform 0.3s ease;
+}
+
+.profile-picture:hover {
+    transform: scale(1.05);
+}
+
+.profile-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item h5 {
+    color: var(--primary-green);
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-item p {
+    color: var(--text-light);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.profile-card .card-title {
+    color: #ffffff !important;
+}
+
+.profile-card .text-muted {
+    color: #cccccc !important;
+}
+</style>
+{% endblock %}

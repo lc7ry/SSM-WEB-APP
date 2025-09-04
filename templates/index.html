@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6">
+                <h1 class="hero-title animate-fade-in">
+                    Welcome to <span class="text-green">SuliStreetMeet</span>
+                </h1>
+                <p class="hero-subtitle animate-fade-in-delay">
+                    Join the most exclusive private car community where passion meets performance.
+                </p>
+                <div class="hero-buttons animate-fade-in-delay-2">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">Join Now</a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">Sign In</a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image animate-slide-in">
+                    <div class="car-silhouette">
+                        <i class="fas fa-car-side"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="features-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="feature-card animate-fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Connect</h3>
+                    <p>Meet fellow car enthusiasts and build lasting relationships within our exclusive community.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card animate-fade-in-delay">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3>Events</h3>
+                    <p>Participate in exclusive car meets, track days, and special automotive events.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card animate-fade-in-delay-2">
+                    <div class="feature-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h3>Discover</h3>
+                    <p>Explore the best driving routes and meetup spots curated by our community.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

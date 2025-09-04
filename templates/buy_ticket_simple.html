@@ -1,0 +1,184 @@
+{% extends "base_readonly.html" %}
+
+{% block title %}Buy Ticket - SuliStreetMeet{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-lg-6 animate-fade-in">
+                    <h1 class="hero-title" style="text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 255, 65, 0.5), 0 0 40px rgba(0, 255, 65, 0.3);">
+                        Buy <span class="text-green" style="text-shadow: 0 0 15px rgba(0, 255, 65, 0.4), 0 0 30px rgba(0, 255, 65, 0.2);">Ticket</span>
+                    </h1>
+                    <p class="hero-subtitle" style="text-shadow: 0 0 10px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.2);">
+                        Get your digital ticket with QR code for events
+                    </p>
+                </div>
+                <div class="col-lg-6 animate-slide-in">
+                    <div class="car-silhouette">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid mt-5">
+        <!-- Event Selection -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4 animate-fade-in" style="color: var(--primary-green); text-shadow: 0 0 20px rgba(0, 255, 65, 0.5), 0 0 40px rgba(0, 255, 65, 0.3);">Select Event</h2>
+            </div>
+        </div>
+
+        <!-- Events Grid -->
+        <div class="row">
+            {% for event in events %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="feature-card animate-fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h4>{{ event[1] }}</h4>
+                    <p><strong>Date:</strong> {{ event[2] }}</p>
+                    <p><strong>Location:</strong> {{ event[3] }}</p>
+                    <p><strong>Price:</strong> ${{ event[4] or '10.00' }}</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="/buy_ticket/{{ event[0] }}" class="btn btn-primary">
+                            <i class="fas fa-shopping-cart"></i> Buy Ticket
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="text-center">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <h3>No events available</h3>
+                    <p class="text-muted">No events are currently available for ticket purchase.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* Ticket specific styles */
+.ticket-card {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border: 2px solid rgba(0, 255, 65, 0.3);
+    border-radius: 15px;
+    padding: 30px;
+    margin: 20px auto;
+    max-width: 600px;
+    position: relative;
+    overflow: hidden;
+}
+
+.ticket-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(0, 255, 65, 0.1) 50%, transparent 70%);
+    pointer-events: none;
+}
+
+.ticket-header {
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.ticket-title {
+    color: var(--primary-green);
+    font-size: 2rem;
+    font-weight: 700;
+    text-shadow: 0 0 15px rgba(0, 255, 65, 0.6);
+    margin-bottom: 10px;
+}
+
+.ticket-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 20px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.ticket-field {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 255, 65, 0.2);
+}
+
+.ticket-field strong {
+    color: var(--primary-green);
+    font-weight: 600;
+}
+
+.qr-section {
+    margin: 20px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.qr-code {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    display: inline-block;
+    border: 2px solid rgba(0, 255, 65, 0.3);
+    box-shadow: 0 5px 15px rgba(0, 255, 65, 0.2);
+}
+
+.ticket-footer {
+    text-align: center;
+    margin-top: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.ticket-id {
+    color: var(--primary-green);
+    font-weight: 600;
+    font-family: monospace;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+.ticket-status {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.status-valid {
+    background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+    color: white;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+.status-expired {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    color: white;
+}
+
+.status-used {
+    background: linear-gradient(45deg, #ffc107, #e0a800);
+    color: black;
+}
+</style>
+{% endblock %}

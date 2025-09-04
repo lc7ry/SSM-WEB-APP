@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Suli Street Meet{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand logo" href="{{ url_for('index') }}">
+                <span class="logo-text">Suli Street Meet</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if current_user %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('members') }}">Members</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('vehicles') }}">Vehicles</a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('events') }}">Events</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('places') }}">Places</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    {% if current_user %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle"></i> {{ current_user.first_name }} {{ current_user.last_name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                                <li><a class="dropdown-item" href="{{ url_for('profile') }}">
+                                    <i class="fas fa-user"></i> My Profile
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('edit_profile') }}">
+                                    <i class="fas fa-edit"></i> Edit Profile
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('change_password') }}">
+                                    <i class="fas fa-key"></i> Change Password
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Floating Notification Container -->
+    <div id="notification-container" class="notification-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="notification notification-{{ category }} show" role="alert">
+                        <div class="notification-content">
+                            <i class="notification-icon fas {% if category == 'success' %}fa-check-circle{% elif category == 'error' %}fa-exclamation-circle{% elif category == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
+                            <span class="notification-message">{{ message }}</span>
+                        </div>
+                        <button type="button" class="notification-close" onclick="closeNotification(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Notification Bell in Navbar -->
+    <div class="notification-bell-container">
+        <button class="notification-bell" id="notification-bell">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
+        </button>
+        <div class="notification-dropdown" id="notification-dropdown">
+            <div class="notification-header">
+                <h6>Notifications</h6>
+                <button class="btn btn-sm btn-link" onclick="clearAllNotifications()">Clear All</button>
+            </div>
+            <div class="notification-list" id="notification-list">
+                <div class="notification-empty">No new notifications</div>
+            </div>
+        </div>
+    </div>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Suli Street Meet</h5>
+                    <p>Private car community for enthusiasts</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2024 Suli Street Meet. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

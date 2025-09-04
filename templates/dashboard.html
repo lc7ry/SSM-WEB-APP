@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Suli Street Meet{% endblock %}
+
+{% block content %}
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 animate-fade-in">
+                    <h1 class="hero-title">
+                        Welcome to <span class="text-green" style="text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 255, 65, 0.5), 0 0 40px rgba(0, 255, 65, 0.3);">Dashboard</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        {% if current_user.role == 'admin' %}
+                            Manage your car community with real-time insights and powerful analytics
+                        {% elif current_user.role == 'moderator' %}
+                            Help manage the community with event creation and vehicle oversight
+                        {% else %}
+                            Explore events, buy tickets, and connect with fellow car enthusiasts
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-lg-6 animate-slide-in">
+                    <div class="car-silhouette">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Tabs -->
+    <div class="dashboard-section">
+    {% if current_user.role == 'admin' %}
+    <div class="container mt-4">
+        <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="overview-tab" data-tab="overview" type="button" role="tab">
+                    <i class="fas fa-chart-line"></i> Overview
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tickets-tab" data-tab="tickets" type="button" role="tab" style="display:none;">
+                    <i class="fas fa-ticket-alt"></i> Tickets
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="management-tab" data-tab="management" type="button" role="tab">
+                    <i class="fas fa-cogs"></i> Management
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content mt-4" id="dashboardTabsContent">
+            <!-- Overview Tab -->
+            <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+
+    <!-- Stats Overview -->
+    <div class="container mt-5">
+        <div class="row g-4">
+            <div class="col-md-4 animate-fade-in-delay">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-number" data-count="{{ total_members }}">0</div>
+                    <div class="stat-label" style="text-shadow: 0 0 10px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.2);">Total Members</div>
+                    <a href="{{ url_for('members') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-arrow-right"></i> View Members
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-md-4 animate-fade-in-delay-2">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <div class="stat-number" data-count="{{ total_vehicles }}">0</div>
+                    <div class="stat-label" style="text-shadow: 0 0 10px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.2);">Total Vehicles</div>
+                    <a href="{{ url_for('vehicles') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-arrow-right"></i> View Vehicles
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-md-4 animate-fade-in-delay">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-number" data-count="{{ upcoming_events }}">0</div>
+                    <div class="stat-label" style="text-shadow: 0 0 10px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.2);">Upcoming Events</div>
+                    <a href="{{ url_for('events') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-arrow-right"></i> View Events
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Grid -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4 animate-fade-in">Quick Actions</h2>
+            </div>
+            
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h4>Add Member</h4>
+                    <p>Register new community members</p>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add New
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay-2">
+                    <div class="feature-icon">
+                        <i class="fas fa-car-side"></i>
+                    </div>
+                    <h4>Add Vehicle</h4>
+                    <p>Register new vehicles to the system</p>
+                    <a href="{{ url_for('vehicles') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Vehicle
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <h4>Create Event</h4>
+                    <p>Schedule new community events</p>
+                    <a href="{{ url_for('events') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Event
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay-2">
+                    <div class="feature-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h4>View Places</h4>
+                    <p>Explore community locations</p>
+                    <a href="{{ url_for('places') }}" class="btn btn-primary">
+                        <i class="fas fa-map"></i> View Places
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4 animate-fade-in">Recent Activity</h2>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Activity</th>
+                                <th>User</th>
+                                <th>Time</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><i class="fas fa-user-plus text-success"></i> New member registered</td>
+                                <td>{{ session.get('username', 'System') }}</td>
+                                <td>Just now</td>
+                                <td><a href="{{ url_for('members') }}" class="btn btn-sm btn-outline-light">View</a></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-car text-success"></i> Dashboard accessed</td>
+                                <td>{{ session.get('username', 'System') }}</td>
+                                <td>Just now</td>
+                                <td><a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-light">View</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tickets Tab -->
+        <div class="tab-pane fade" id="tickets" role="tabpanel" aria-labelledby="tickets-tab" tabindex="0">
+            <div class="container">
+                {% include 'ticket_dashboard.html' %}
+            </div>
+        </div>
+
+        <!-- Management Tab -->
+        <div class="tab-pane fade" id="management" role="tabpanel" aria-labelledby="management-tab" tabindex="0">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <h3 class="mb-4">System Management</h3>
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-users-cog"></i>
+                                    </div>
+                                    <h4>User Permissions</h4>
+                                    <p>Manage user roles and permissions</p>
+                                    <a href="{{ url_for('manage_permissions') }}" class="btn btn-primary">
+                                        <i class="fas fa-user-shield"></i> Manage Permissions
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-server"></i>
+                                    </div>
+                                    <h4>Server Control</h4>
+                                    <p>Control public/private server access</p>
+                                    <a href="{{ url_for('server_control') }}" class="btn btn-primary">
+                                        <i class="fas fa-globe"></i> Server Settings
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Member/Moderator Dashboard (No Tabs) -->
+    <div class="container mt-5">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-number" data-count="{{ upcoming_events }}">0</div>
+                    <div class="stat-label" style="text-shadow: 0 0 10px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.2);">Upcoming Events</div>
+                    <a href="{{ url_for('events') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-arrow-right"></i> View Events
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <div class="stat-number" data-count="{{ total_tickets|default(0) }}">0</div>
+                    <div class="stat-label" style="text-shadow: 0 0 10px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.2);">Available Tickets</div>
+                    <a href="{{ url_for('ticket.buy_ticket') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-shopping-cart"></i> Buy Tickets
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Member Quick Actions -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4 animate-fade-in">Quick Actions</h2>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay">
+                    <div class="feature-icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <h4>Buy Tickets</h4>
+                    <p>Purchase tickets for events</p>
+                    <a href="{{ url_for('ticket.buy_ticket') }}" class="btn btn-primary">
+                        <i class="fas fa-shopping-cart"></i> Buy Now
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay-2">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h4>View Events</h4>
+                    <p>Browse upcoming events</p>
+                    <a href="{{ url_for('events') }}" class="btn btn-primary">
+                        <i class="fas fa-calendar"></i> Events
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay">
+                    <div class="feature-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <h4>My Vehicles</h4>
+                    <p>Manage your vehicle collection</p>
+                    <a href="{{ url_for('vehicles') }}" class="btn btn-primary">
+                        <i class="fas fa-car-side"></i> Vehicles
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay-2">
+                    <div class="feature-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h4>Places</h4>
+                    <p>Explore community locations</p>
+                    <a href="{{ url_for('places') }}" class="btn btn-primary">
+                        <i class="fas fa-map"></i> View Places
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    </div>
+</div>
+
+<style>
+/* Dashboard specific styles */
+.stat-icon {
+    font-size: 2.5rem;
+    color: var(--primary-green);
+    margin-bottom: 15px;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-green);
+    font-family: 'Orbitron', monospace;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-number {
+    transform: scale(1.1);
+}
+
+.feature-card {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px var(--primary-green) 0.2;
+    border-color: var(--primary-green);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: var(--primary-green);
+    margin-bottom: 15px;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+    border: none;
+    color: var(--bg-dark);
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 65, 0.4);
+}
+
+/* Counter animation */
+@keyframes countUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-count {
+    animation: countUp 1s ease-out;
+}
+</style>
+
+<script>
+// Counter animation for stats
+function animateCounters() {
+    const counters = document.querySelectorAll('.stat-number');
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-count'));
+        const increment = target / 50;
+        let current = 0;
+
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                counter.textContent = target;
+                clearInterval(timer);
+            } else {
+                counter.textContent = Math.floor(current);
+            }
+        }, 20);
+
+        counter.classList.add('animate-count');
+    });
+}
+
+// Simple tab switching functionality
+function switchTab(tabName) {
+    console.log('Switching to tab:', tabName);
+
+    // Hide all tab panes
+    const allPanes = document.querySelectorAll('.tab-pane');
+    allPanes.forEach(pane => {
+        pane.classList.remove('show', 'active');
+        pane.style.display = 'none';
+    });
+
+    // Remove active class from all tab buttons
+    const allTabs = document.querySelectorAll('#dashboardTabs .nav-link');
+    allTabs.forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Show the selected tab pane
+    const targetPane = document.getElementById(tabName);
+    if (targetPane) {
+        targetPane.classList.add('show', 'active');
+        targetPane.style.display = 'block';
+        console.log('Activated pane:', tabName);
+    } else {
+        console.error('Target pane not found:', tabName);
+    }
+
+    // Add active class to clicked tab
+    const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
+    if (activeTab) {
+        activeTab.classList.add('active');
+    }
+}
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard DOM loaded');
+
+    // Animate counters on load
+    setTimeout(animateCounters, 500);
+
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.stat-card, .feature-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Initialize tabs
+    const tabButtons = document.querySelectorAll('#dashboardTabs .nav-link');
+    console.log('Found tab buttons:', tabButtons.length);
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            const tabName = this.getAttribute('data-tab');
+            if (tabName) {
+                switchTab(tabName);
+            }
+        });
+    });
+
+    // Show default tab (overview)
+    switchTab('overview');
+});
+</script>
+{% endblock %}
