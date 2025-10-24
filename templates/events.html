@@ -1,0 +1,1011 @@
+{% extends "base_readonly.html" %}
+
+{% block title %}Events - SuliStreetMeet{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 animate-fade-in">
+                    <h1 class="hero-title">
+                        Events <span class="text-green">Dashboard</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        Discover upcoming car meets, shows, and community gatherings
+                    </p>
+                </div>
+                <div class="col-lg-6 animate-slide-in">
+                    <div class="car-silhouette">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <!-- Stats Overview -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-3 animate-fade-in-delay">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-number" data-count="{{ events|length }}">0</div>
+                    <div class="stat-label">Total Events</div>
+                </div>
+            </div>
+
+            <div class="col-md-3 animate-fade-in-delay-2">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-number" data-count="{{ upcoming_events_count or 0 }}">0</div>
+                    <div class="stat-label">Upcoming Events</div>
+                </div>
+            </div>
+
+            <div class="col-md-3 animate-fade-in-delay">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-number" data-count="{{ total_rsvps or 0 }}">0</div>
+                    <div class="stat-label">Total RSVPs</div>
+                </div>
+            </div>
+
+            <div class="col-md-3 animate-fade-in-delay-2">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-number" data-count="{{ past_events_count or 0 }}">0</div>
+                    <div class="stat-label">Past Events</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Grid -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4 animate-fade-in">Quick Actions</h2>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <h4>View Calendar</h4>
+                    <p>Browse events calendar</p>
+                    <a href="{{ url_for('events') }}" class="btn btn-primary">
+                        <i class="fas fa-calendar-alt"></i> Calendar
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay-2">
+                    <div class="feature-icon">
+                        <i class="fas fa-share-alt"></i>
+                    </div>
+                    <h4>Share Events</h4>
+                    <p>Share events with community</p>
+                    <button class="btn btn-primary" onclick="shareAllEvents()">
+                        <i class="fas fa-share"></i> Share
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h4>Notifications</h4>
+                    <p>Get event reminders</p>
+                    <button class="btn btn-primary" onclick="subscribeToEvents()">
+                        <i class="fas fa-bell"></i> Subscribe
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="feature-card animate-fade-in-delay-2">
+                    <div class="feature-icon">
+                        <i class="fas fa-arrow-left"></i>
+                    </div>
+                    <h4>Back to Dashboard</h4>
+                    <p>Return to main dashboard</p>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events List with Tabs -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4 animate-fade-in">Events Management</h2>
+
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs justify-content-center mb-4" id="eventTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-events" type="button" role="tab" aria-controls="all-events" aria-selected="true">
+                            <i class="fas fa-list"></i> All Events
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming-events" type="button" role="tab" aria-controls="upcoming-events" aria-selected="false">
+                            <i class="fas fa-clock"></i> Upcoming Events
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past-events" type="button" role="tab" aria-controls="past-events" aria-selected="false">
+                            <i class="fas fa-check-circle"></i> Past Events
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="eventTabsContent">
+                    <!-- All Events Tab -->
+                    <div class="tab-pane fade show active" id="all-events" role="tabpanel" aria-labelledby="all-tab">
+                        <div class="table-responsive">
+                            <table class="table table-hover modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Date & Time</th>
+                                        <th>Location</th>
+                                        <th>RSVPs</th>
+                                        <th>Capacity</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in events %}
+                                    <tr class="animate-fade-in-delay">
+                                        <td>
+                                            <div class="event-info">
+                                                <strong>{{ event[1] }}</strong>
+                                                <small class="text-muted">{{ event[4][:50] if event[4] else '' }}...</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="date-time">
+                                                <strong>{{ event[2] }}</strong>
+                                                <small class="text-muted">{{ event[5] if event[5] else 'TBD' }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="location-info">
+                                                <strong>{{ event[3] or 'TBD' }}</strong>
+                                                <small class="text-muted">{{ event[6] if event[6] else '' }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="rsvp-count">{{ event[7] or 0 }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="capacity">{{ event[8] or 'Unlimited' }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge status-{{ 'upcoming' if event[2]|string >= current_date|string else 'past' }}">
+                                                {{ 'Upcoming' if event[2]|string >= current_date|string else 'Past' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <a href="{{ url_for('event_detail', event_id=event[0]) }}"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="shareEvent('{{ event[1] }}', '{{ event[2] }}', '{{ event[3] }}')">
+                                                    <i class="fas fa-share"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5">
+                                            <div class="empty-state">
+                                                <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                                                <h5>No events found</h5>
+                                                <p class="text-muted">No events are currently scheduled. Check back soon!</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Events Tab -->
+                    <div class="tab-pane fade" id="upcoming-events" role="tabpanel" aria-labelledby="upcoming-tab">
+                        <div class="table-responsive">
+                            <table class="table table-hover modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Date & Time</th>
+                                        <th>Location</th>
+                                        <th>RSVPs</th>
+                                        <th>Capacity</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in events %}
+                                    {% if event[2]|string >= current_date|string %}
+                                    <tr class="animate-fade-in-delay">
+                                        <td>
+                                            <div class="event-info">
+                                                <strong>{{ event[1] }}</strong>
+                                                <small class="text-muted">{{ event[4][:50] if event[4] else '' }}...</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="date-time">
+                                                <strong>{{ event[2] }}</strong>
+                                                <small class="text-muted">{{ event[5] if event[5] else 'TBD' }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="location-info">
+                                                <strong>{{ event[3] or 'TBD' }}</strong>
+                                                <small class="text-muted">{{ event[6] if event[6] else '' }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="rsvp-count">{{ event[7] or 0 }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="capacity">{{ event[8] or 'Unlimited' }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <a href="{{ url_for('event_detail', event_id=event[0]) }}"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="shareEvent('{{ event[1] }}', '{{ event[2] }}', '{{ event[3] }}')">
+                                                    <i class="fas fa-share"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% set has_upcoming = false %}
+                                    {% for event in events %}
+                                        {% if event[2]|string >= current_date|string %}
+                                            {% set has_upcoming = true %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if not events or not has_upcoming %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-5">
+                                            <div class="empty-state">
+                                                <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                                                <h5>No upcoming events</h5>
+                                                <p class="text-muted">All events are in the past or none scheduled.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Past Events Tab -->
+                    <div class="tab-pane fade" id="past-events" role="tabpanel" aria-labelledby="past-tab">
+                        <div class="table-responsive">
+                            <table class="table table-hover modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Date & Time</th>
+                                        <th>Location</th>
+                                        <th>RSVPs</th>
+                                        <th>Capacity</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in events %}
+                                    {% if event[2]|string < current_date|string %}
+                                    <tr class="animate-fade-in-delay">
+                                        <td>
+                                            <div class="event-info">
+                                                <strong>{{ event[1] }}</strong>
+                                                <small class="text-muted">{{ event[4][:50] if event[4] else '' }}...</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="date-time">
+                                                <strong>{{ event[2] }}</strong>
+                                                <small class="text-muted">{{ event[5] if event[5] else 'TBD' }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="location-info">
+                                                <strong>{{ event[3] or 'TBD' }}</strong>
+                                                <small class="text-muted">{{ event[6] if event[6] else '' }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="rsvp-count">{{ event[7] or 0 }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="capacity">{{ event[8] or 'Unlimited' }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <a href="{{ url_for('event_detail', event_id=event[0]) }}"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="shareEvent('{{ event[1] }}', '{{ event[2] }}', '{{ event[3] }}')">
+                                                    <i class="fas fa-share"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% set has_past = false %}
+                                    {% for event in events %}
+                                        {% if event[2]|string < current_date|string %}
+                                            {% set has_past = true %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if not events or not has_past %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-5">
+                                            <div class="empty-state">
+                                                <i class="fas fa-check-circle fa-3x text-muted mb-3"></i>
+                                                <h5>No past events</h5>
+                                                <p class="text-muted">All events are upcoming or none have occurred yet.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Status Distribution -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4 animate-fade-in">Event Status Distribution</h2>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="status-card upcoming animate-fade-in-delay">
+                            <div class="status-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="status-number">{{ upcoming_events_count or 0 }}</div>
+                            <div class="status-label">Upcoming</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill upcoming" data-width="{{ ((upcoming_events_count | default(0)) / (events|length | default(0)) * 100) if (events|length | default(0)) > 0 else 0 }}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="status-card past animate-fade-in-delay-2">
+                            <div class="status-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="status-number">{{ past_events_count or 0 }}</div>
+                            <div class="status-label">Past</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill past" data-width="{{ ((past_events_count | default(0)) / (events|length | default(0)) * 100) if (events|length | default(0)) > 0 else 0 }}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* CSS Variables */
+:root {
+    --primary-green: #00ff41;
+    --secondary-green: #00cc33;
+    --text-secondary: #888;
+    --bg-dark: #1a1a1a;
+}
+
+/* Modern Dashboard Styles */
+.hero-section {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+    padding: 80px 0;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary-green);
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 255, 65, 0.5), 0 0 40px rgba(0, 255, 65, 0.3);
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.2);
+}
+
+.car-silhouette {
+    text-align: center;
+    color: var(--primary-green);
+    font-size: 8rem;
+    opacity: 0.8;
+    filter: drop-shadow(0 0 20px rgba(0, 255, 65, 0.4));
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.4s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.stat-card:hover::before {
+    left: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 255, 65, 0.3);
+    border-color: var(--primary-green);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    color: var(--primary-green);
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-green);
+    font-family: 'Orbitron', monospace;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+}
+
+.stat-card:hover .stat-number {
+    transform: scale(1.05);
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.feature-card {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.4s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.feature-card:hover::before {
+    left: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 255, 65, 0.3);
+    border-color: var(--primary-green);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: var(--primary-green);
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+    transform: scale(1.1);
+}
+
+.feature-card h4 {
+    color: var(--primary-green);
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-shadow: 0 0 15px rgba(0, 255, 65, 0.4), 0 0 30px rgba(0, 255, 65, 0.2);
+}
+
+.feature-card p {
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+    text-shadow: 0 0 8px rgba(0, 255, 65, 0.2), 0 0 15px rgba(0, 255, 65, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+    border: none;
+    color: var(--bg-dark);
+    font-weight: 600;
+    padding: 12px 25px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 255, 65, 0.4);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--primary-green);
+    color: var(--primary-green);
+    background: transparent;
+    font-weight: 600;
+    padding: 8px 15px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-green);
+    color: var(--bg-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 65, 0.4);
+}
+
+.btn-outline-secondary {
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    background: transparent;
+    font-weight: 600;
+    padding: 8px 15px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-outline-secondary:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+}
+
+/* Modern Table Styles */
+.modern-table {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.05), rgba(0, 255, 65, 0.02));
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 255, 65, 0.2);
+}
+
+.modern-table thead th {
+    background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+    color: white;
+    border: none;
+    padding: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.modern-table tbody tr {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(0, 255, 65, 0.1);
+}
+
+.modern-table tbody tr:hover {
+    background: rgba(0, 255, 65, 0.1);
+    transform: scale(1.01);
+}
+
+.modern-table tbody td {
+    padding: 15px;
+    vertical-align: middle;
+    border: none;
+}
+
+.event-info strong {
+    color: var(--primary-green);
+    display: block;
+}
+
+.event-info small {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.date-time strong {
+    color: var(--primary-green);
+    display: block;
+}
+
+.date-time small {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.location-info strong {
+    color: var(--primary-green);
+    display: block;
+}
+
+.location-info small {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.rsvp-count {
+    font-weight: bold;
+    color: var(--primary-green);
+    font-size: 1.1rem;
+}
+
+.capacity {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-upcoming {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.status-past {
+    background: rgba(108, 117, 125, 0.2);
+    color: #6c757d;
+    border: 1px solid rgba(108, 117, 125, 0.3);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+/* Status Cards */
+.status-card {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.4s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.status-card.upcoming {
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+.status-card.past {
+    border-color: rgba(108, 117, 125, 0.3);
+}
+
+.status-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 255, 65, 0.3);
+}
+
+.status-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.status-card.upcoming .status-icon {
+    color: #28a745;
+}
+
+.status-card.past .status-icon {
+    color: #6c757d;
+}
+
+.status-card:hover .status-icon {
+    transform: scale(1.1);
+}
+
+.status-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.status-card.upcoming .status-number {
+    color: #28a745;
+}
+
+.status-card.past .status-number {
+    color: #6c757d;
+}
+
+.status-card:hover .status-number {
+    transform: scale(1.05);
+}
+
+.status-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    margin-top: 15px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease;
+}
+
+.progress-fill.upcoming {
+    background: #28a745;
+}
+
+.progress-fill.past {
+    background: #6c757d;
+}
+
+/* Empty State */
+.empty-state {
+    padding: 40px 20px;
+}
+
+.empty-state h5 {
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+/* Counter animation */
+@keyframes countUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-count {
+    animation: countUp 1s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .modern-table {
+        font-size: 0.9rem;
+    }
+
+    .modern-table thead th,
+    .modern-table tbody td {
+        padding: 10px;
+    }
+
+    .feature-card {
+        padding: 20px;
+    }
+
+    .stat-card {
+        padding: 20px;
+    }
+
+    .status-card {
+        padding: 20px;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .car-silhouette {
+        font-size: 6rem;
+    }
+}
+</style>
+
+<script>
+// Counter animation for stats
+function animateCounters() {
+    const counters = document.querySelectorAll('.stat-number');
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-count') || counter.textContent);
+        const increment = target / 50;
+        let current = 0;
+
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                counter.textContent = target;
+                clearInterval(timer);
+            } else {
+                counter.textContent = Math.floor(current);
+            }
+        }, 20);
+
+        counter.classList.add('animate-count');
+    });
+}
+
+// Progress bar animation
+function animateProgressBars() {
+    const progressBars = document.querySelectorAll('.progress-fill');
+    progressBars.forEach(bar => {
+        const width = bar.getAttribute('data-width');
+        if (width) {
+            bar.style.width = width + '%';
+        }
+    });
+}
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate counters on load
+    setTimeout(animateCounters, 500);
+
+    // Animate progress bars
+    setTimeout(animateProgressBars, 1000);
+
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.stat-card, .feature-card, .status-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Tab functionality
+    const tabButtons = document.querySelectorAll('#eventTabs .nav-link');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons and panes
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabPanes.forEach(pane => pane.classList.remove('show', 'active'));
+
+            // Add active class to clicked button and corresponding pane
+            this.classList.add('active');
+            const target = document.querySelector(this.getAttribute('data-bs-target'));
+            if (target) {
+                target.classList.add('show', 'active');
+            }
+        });
+    });
+});
+
+// Share functions
+function shareEvent(name, date, location) {
+    if (navigator.share) {
+        navigator.share({
+            title: name,
+            text: `Check out this event: ${name} on ${date} at ${location}`,
+            url: window.location.href
+        });
+    } else {
+        const text = `Check out this event: ${name} on ${date} at ${location} - ${window.location.href}`;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Event details copied to clipboard!');
+        });
+    }
+}
+
+function shareAllEvents() {
+    const text = `Check out all upcoming events at SuliStreetMeet! ${window.location.href}`;
+    if (navigator.share) {
+        navigator.share({
+            title: 'SuliStreetMeet Events',
+            text: text,
+            url: window.location.href
+        });
+    } else {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Events link copied to clipboard!');
+        });
+    }
+}
+
+function subscribeToEvents() {
+    alert('Event notifications feature coming soon!');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Scan Tickets - Car Meet Community{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-lg-6 animate-fade-in">
+                    <h1 class="hero-title" style="text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 255, 65, 0.5), 0 0 40px rgba(0, 255, 65, 0.3);">
+                        Ticket <span class="text-green" style="text-shadow: 0 0 15px rgba(0, 255, 65, 0.4), 0 0 30px rgba(0, 255, 65, 0.2);">Scanner</span>
+                    </h1>
+                    <p class="hero-subtitle" style="text-shadow: 0 0 10px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.2);">
+                        Scan QR codes to validate event tickets
+                    </p>
+                </div>
+                <div class="col-lg-6 animate-slide-in">
+                    <div class="car-silhouette">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid mt-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Scanner Interface -->
+                <div class="feature-card mb-4">
+                    <h4 style="color: var(--primary-green); margin-bottom: 20px;">
+                        <i class="fas fa-camera"></i> QR Code Scanner
+                    </h4>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="scanner-container" style="width: 100%; max-width: 300px; margin: 0 auto;">
+                                <video id="scanner-video" style="width: 100%; border: 2px solid var(--primary-green); border-radius: 10px;"></video>
+                            </div>
+                            <div class="text-center mt-3">
+                                <button id="start-scan" class="btn btn-primary">
+                                    <i class="fas fa-play"></i> Start Scanner
+                                </button>
+                                <button id="stop-scan" class="btn btn-secondary" disabled>
+                                    <i class="fas fa-stop"></i> Stop Scanner
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Manual Entry</h5>
+                            <p class="text-muted">If QR scanning doesn't work, enter the ticket ID manually:</p>
+                            <div class="input-group mb-3">
+                                <input type="text" id="manual-ticket-id" class="form-control" placeholder="Enter ticket ID">
+                                <button id="manual-scan" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Validate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scan Results -->
+                <div id="scan-result" class="feature-card" style="display: none;">
+                    <h4 id="result-title" style="color: var(--primary-green); margin-bottom: 20px;">
+                        <i class="fas fa-check-circle"></i> Scan Result
+                    </h4>
+
+                    <div id="result-content">
+                        <!-- Result content will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Recent Scans -->
+                <div class="feature-card">
+                    <h4 style="color: var(--primary-green); margin-bottom: 20px;">
+                        <i class="fas fa-history"></i> Recent Scans
+                    </h4>
+
+                    <div id="recent-scans">
+                        <p class="text-muted">No recent scans</p>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="feature-card mt-4">
+                    <h4 style="color: var(--primary-green); margin-bottom: 20px;">
+                        <i class="fas fa-chart-bar"></i> Today's Statistics
+                    </h4>
+
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="stat-number" data-count="0" id="scans-today">0</div>
+                            <div class="stat-label">Scans</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-number" data-count="0" id="valid-today">0</div>
+                            <div class="stat-label">Valid</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+<script>
+let codeReader = null;
+let isScanning = false;
+let recentScans = [];
+let stats = { scans: 0, valid: 0 };
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize QR code reader
+    codeReader = new ZXing.BrowserQRCodeReader();
+
+    // Start scan button
+    document.getElementById('start-scan').addEventListener('click', startScanning);
+    document.getElementById('stop-scan').addEventListener('click', stopScanning);
+    document.getElementById('manual-scan').addEventListener('click', manualScan);
+
+    // Enter key for manual entry
+    document.getElementById('manual-ticket-id').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            manualScan();
+        }
+    });
+});
+
+async function startScanning() {
+    try {
+        const result = await codeReader.decodeOnceFromVideoDevice(undefined, 'scanner-video');
+        if (result) {
+            const ticketId = result.text.replace('TICKET:', '');
+            validateTicket(ticketId, 'scanned');
+        }
+    } catch (err) {
+        console.error('QR scan error:', err);
+        showResult('error', 'Scanning Error', 'Failed to scan QR code. Please try again or use manual entry.');
+    }
+}
+
+function stopScanning() {
+    if (codeReader) {
+        codeReader.reset();
+    }
+    isScanning = false;
+    document.getElementById('start-scan').disabled = false;
+    document.getElementById('stop-scan').disabled = true;
+    document.getElementById('scanner-video').style.display = 'none';
+}
+
+async function manualScan() {
+    const ticketId = document.getElementById('manual-ticket-id').value.trim();
+    if (!ticketId) {
+        showResult('warning', 'Invalid Input', 'Please enter a ticket ID.');
+        return;
+    }
+    validateTicket(ticketId, 'manual');
+}
+
+async function validateTicket(ticketId, method) {
+    try {
+        const response = await fetch('/ticket/api/scan_ticket', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ticket_id: ticketId })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showResult('success', 'Ticket Validated', `
+                <div class="alert alert-success">
+                    <h5><i class="fas fa-check-circle"></i> Valid Ticket</h5>
+                    <p><strong>Ticket ID:</strong> ${data.ticket.id}</p>
+                    <p><strong>Buyer:</strong> ${data.ticket.buyer_name}</p>
+                    <p><strong>Event:</strong> ${data.ticket.event_name}</p>
+                    <p><strong>Scanned At:</strong> ${new Date(data.ticket.scanned_at).toLocaleString()}</p>
+                </div>
+            `);
+            stats.valid++;
+            updateStats();
+        } else {
+            showResult('error', 'Invalid Ticket', `
+                <div class="alert alert-danger">
+                    <h5><i class="fas fa-times-circle"></i> ${data.error}</h5>
+                    ${data.ticket ? `
+                        <p><strong>Ticket ID:</strong> ${data.ticket.id}</p>
+                        <p><strong>Buyer:</strong> ${data.ticket.buyer_name}</p>
+                        <p><strong>Event:</strong> ${data.ticket.event_name}</p>
+                        <p><strong>Status:</strong> ${data.ticket.status}</p>
+                    ` : ''}
+                </div>
+            `);
+        }
+
+        stats.scans++;
+        updateStats();
+        addToRecentScans(data, method);
+
+    } catch (error) {
+        console.error('Validation error:', error);
+        showResult('error', 'Connection Error', 'Failed to validate ticket. Please check your connection and try again.');
+    }
+}
+
+function showResult(type, title, content) {
+    const resultDiv = document.getElementById('scan-result');
+    const titleDiv = document.getElementById('result-title');
+    const contentDiv = document.getElementById('result-content');
+
+    // Update title with appropriate icon
+    let icon = 'fas fa-info-circle';
+    if (type === 'success') icon = 'fas fa-check-circle';
+    else if (type === 'error') icon = 'fas fa-times-circle';
+    else if (type === 'warning') icon = 'fas fa-exclamation-triangle';
+
+    titleDiv.innerHTML = `<i class="${icon}"></i> ${title}`;
+    contentDiv.innerHTML = content;
+    resultDiv.style.display = 'block';
+
+    // Scroll to result
+    resultDiv.scrollIntoView({ behavior: 'smooth' });
+
+    // Clear manual input
+    document.getElementById('manual-ticket-id').value = '';
+}
+
+function addToRecentScans(data, method) {
+    const scanItem = {
+        ticket_id: data.ticket ? data.ticket.id : 'Unknown',
+        buyer_name: data.ticket ? data.ticket.buyer_name : 'Unknown',
+        event_name: data.ticket ? data.ticket.event_name : 'Unknown',
+        status: data.success ? 'Valid' : 'Invalid',
+        method: method,
+        timestamp: new Date().toLocaleString()
+    };
+
+    recentScans.unshift(scanItem);
+    if (recentScans.length > 10) {
+        recentScans.pop();
+    }
+
+    updateRecentScansDisplay();
+}
+
+function updateRecentScansDisplay() {
+    const container = document.getElementById('recent-scans');
+
+    if (recentScans.length === 0) {
+        container.innerHTML = '<p class="text-muted">No recent scans</p>';
+        return;
+    }
+
+    let html = '';
+    recentScans.forEach(scan => {
+        const statusClass = scan.status === 'Valid' ? 'text-success' : 'text-danger';
+        const methodIcon = scan.method === 'scanned' ? 'fas fa-qrcode' : 'fas fa-keyboard';
+        html += `
+            <div class="border-bottom py-2">
+                <small class="text-muted">${scan.timestamp}</small>
+                <div class="d-flex justify-content-between">
+                    <span><i class="${methodIcon}"></i> ${scan.ticket_id}</span>
+                    <span class="${statusClass}"><strong>${scan.status}</strong></span>
+                </div>
+                <small class="text-muted">${scan.buyer_name} - ${scan.event_name}</small>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+function updateStats() {
+    document.getElementById('scans-today').textContent = stats.scans;
+    document.getElementById('valid-today').textContent = stats.valid;
+}
+
+// Counter animation for stats
+function animateCounters() {
+    const counters = document.querySelectorAll('.stat-number');
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-count'));
+        const increment = target / 50;
+        let current = 0;
+
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                counter.textContent = target;
+                clearInterval(timer);
+            } else {
+                counter.textContent = Math.floor(current);
+            }
+        }, 20);
+    });
+}
+
+// Initialize
+setTimeout(animateCounters, 500);
+</script>
+{% endblock %}

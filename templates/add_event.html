@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Add Event - SuliStreetMeet{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <h1 class="mb-4">Create New Event</h1>
+                <p class="lead">Add a new meetup or gathering for the community</p>
+                
+                <form method="POST" action="{{ url_for('add_event') }}">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Event Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="place_id" class="form-label">Place</label>
+                        <select class="form-select" id="place_id" name="place_id" required>
+                            <option value="">Select a place</option>
+                            {% for place in places %}
+                                <option value="{{ place[0] }}">{{ place[1] }} - {{ place[2] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="event_date" class="form-label">Event Date</label>
+                        <input type="date" class="form-control" id="event_date" name="event_date" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="event_time" class="form-label">Event Time</label>
+                        <input type="time" class="form-control" id="event_time" name="event_time" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="max_attendees" class="form-label">Max Attendees</label>
+                        <input type="number" class="form-control" id="max_attendees" name="max_attendees" min="1" value="50">
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Create Event</button>
+                        <a href="{{ url_for('events') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

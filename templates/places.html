@@ -1,0 +1,113 @@
+{% extends "base_readonly.html" %}
+
+{% block title %}Places - SuliStreetMeet{% endblock %}
+
+{% block content %}
+<style>
+.btn-outline-success:hover {
+    background: linear-gradient(45deg, rgba(0, 255, 65, 0.2), rgba(0, 255, 65, 0.1));
+    border-color: var(--primary-green);
+    color: var(--primary-green);
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(0, 255, 65, 0.5), 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+.map-container {
+    height: 200px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+</style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+ integrity="sha256-sA+e2H1kP0p+v+gk5Q5bQ6k6Q5Q5Q5Q5Q5Q5Q5Q5Q5Q="
+ crossorigin=""/>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+ integrity="sha256-o9N1j6k6Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q="
+ crossorigin=""></script>
+
+<div class="dashboard-section">
+    <div class="container-fluid mt-5">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="text-center mb-4">
+                    <h1 class="mb-3" style="color: var(--primary-green); text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 255, 65, 0.5), 0 0 40px rgba(0, 255, 65, 0.3);">Community Places</h1>
+                    <p class="lead mb-4" style="text-shadow: 0 0 10px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.2);">Popular meeting spots and locations</p>
+                    {% if current_user and current_user.permissions.can_post_events %}
+                    <a href="{{ url_for('add_place') }}" class="btn btn-lg btn-outline-success shadow-lg px-4 py-2" style="border: 2px solid var(--primary-green); color: var(--primary-green); background: linear-gradient(45deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05)); box-shadow: 0 0 20px rgba(0, 255, 65, 0.3), 0 4px 15px rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
+                        <i class="fas fa-plus-circle fa-lg"></i> Add New Place
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for place in places %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h4>{{ place.name }}</h4>
+                    <p><strong>Address:</strong> {{ place.address }}</p>
+                    <p>{{ place.description }}</p>
+                    {% if place.latitude and place.longitude %}
+                    <div id="map-{{ loop.index }}" class="map-container mb-3"></div>
+                    {% endif %}
+                    <div class="d-flex gap-2">
+                        <a href="https://maps.google.com/?q={{ place.address }}" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-directions"></i> Get Directions
+                        </a>
+                        {% if place.map_link %}
+                        <a href="{{ place.map_link }}" target="_blank" class="btn btn-outline-success">
+                            <i class="fas fa-map-marked-alt"></i> View on Map
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="text-center">
+                    <i class="fas fa-map fa-3x text-muted mb-3"></i>
+                    <p>No places added yet</p>
+                    {% if current_user and current_user.permissions.can_post_events %}
+                    <a href="{{ url_for('add_place') }}" class="btn btn-lg btn-outline-success shadow-lg px-4 py-2" style="border: 2px solid var(--primary-green); color: var(--primary-green); background: linear-gradient(45deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05)); box-shadow: 0 0 20px rgba(0, 255, 65, 0.3), 0 4px 15px rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
+                        <i class="fas fa-plus-circle fa-lg"></i> Add First Place
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12 text-center">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); border: 1px solid rgba(0, 123, 255, 0.5);">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    {% for place in places %}
+    {% if place.latitude and place.longitude %}
+    var map{{ loop.index }} = L.map('map-{{ loop.index }}').setView([{{ place.latitude }}, {{ place.longitude }}], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map{{ loop.index }});
+    L.marker([{{ place.latitude }}, {{ place.longitude }}]).addTo(map{{ loop.index }})
+        .bindPopup('<b>{{ place.name }}</b><br>{{ place.address }}')
+        .openPopup();
+    {% endif %}
+    {% endfor %}
+});
+</script>
+
+{% endblock %}

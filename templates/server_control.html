@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Server Control{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Server Public/Private Control</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Control whether your server is accessible from the public internet using ngrok tunneling.</p>
+
+                    <div class="mb-4">
+                        <h5>Current Status:</h5>
+                        {% if tunnel_status == 'running' %}
+                            <div class="alert alert-success">
+                                <strong>Server is PUBLIC</strong><br>
+                                {% if public_url %}
+                                    Public URL: <a href="{{ public_url }}" target="_blank">{{ public_url }}</a>
+                                {% else %}
+                                    Tunnel is running! Check the ngrok web interface for your public URL:<br>
+                                    <a href="http://127.0.0.1:4040" target="_blank">http://127.0.0.1:4040</a>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-secondary">
+                                <strong>Server is PRIVATE</strong><br>
+                                Only accessible on your local network.
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <form method="POST">
+                                <input type="hidden" name="action" value="start_public">
+                                <button type="submit" class="btn btn-success btn-lg btn-block" {% if tunnel_status == 'running' %}disabled{% endif %}>
+                                    <i class="fas fa-globe"></i> Make Server Public
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <form method="POST">
+                                <input type="hidden" name="action" value="stop_public">
+                                <button type="submit" class="btn btn-danger btn-lg btn-block" {% if tunnel_status == 'stopped' %}disabled{% endif %}>
+                                    <i class="fas fa-lock"></i> Make Server Private
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="mt-4">
+                        <h5>Instructions:</h5>
+                        <ol>
+                            <li>ngrok is already installed in your project directory</li>
+                            <li>Use the buttons above to start/stop the public tunnel</li>
+                            <li>When public, share the URL with others to access your server</li>
+                            <li>The tunnel will remain active until you stop it or restart the server</li>
+                        </ol>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <strong>Free Alternative:</strong> For permanent free hosting, consider deploying to Heroku (see README.md for instructions).
+                    </div>
+
+                    <div class="alert alert-warning mt-4">
+                        <strong>Security Note:</strong> Making your server public exposes it to the internet. Ensure you have proper authentication and security measures in place.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

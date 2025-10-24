@@ -1,0 +1,1 @@
+- [x] Add Total RSVPs stat card to templates/events_dashboard.html between Upcoming Events and Past Events cards

@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block title %}Event Details - {{ event[1] }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('events') }}">Events</a></li>
+                    <li class="breadcrumb-item active">{{ event[1] }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Event Details Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>{{ event[1] }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Event Information</h6>
+                            <p><strong>Date:</strong> {{ event[3] }}</p>
+                            <p><strong>Time:</strong> {{ event[4] if event[4] else 'TBD' }}</p>
+                            <p><strong>Location:</strong> {{ event[5] }}</p>
+                            {% if event[11] %}
+                            <p><strong>Venue:</strong> {{ event[11] }}</p>
+                            {% if event[12] %}
+                            <p><strong>Address:</strong> {{ event[12] }}</p>
+                            {% endif %}
+                            {% endif %}
+                            <p><strong>Max Attendees:</strong> {{ event[6] if event[6] else 'Unlimited' }}</p>
+                            <p><strong>Current Attendees:</strong> {{ attendee_count }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Description</h6>
+                            <p>{{ event[7] if event[7] else 'No description available.' }}</p>
+
+                            {% if event[18] %}
+                            <h6 class="text-muted mb-3 mt-4">Venue Description</h6>
+                            <p>{{ event[18] }}</p>
+                            {% endif %}
+
+                            {% if creator_name %}
+                            <p class="text-muted mt-3">
+                                <small>Created by: {{ creator_name }}</small>
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Map Section -->
+                    {% if event[11] and event[12] %}
+                    <div class="mt-4">
+                        <h6 class="text-muted mb-3">Location Map</h6>
+                        <div class="ratio ratio-16x9">
+                            <iframe
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d{{ event[12] }}!3d{{ event[11] }}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z{{ event[11] }}!5e0!3m2!1sen!2sus!4v1234567890!5m2!1sen!2sus"
+                                width="600"
+                                height="450"
+                                style="border:0;"
+                                allowfullscreen=""
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- RSVP Section (if available) -->
+            {% if rsvps is defined %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">RSVP List</h5>
+                </div>
+                <div class="card-body">
+                    {% if rsvps %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Attendees</th>
+                                        <th>RSVP Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for rsvp in rsvps %}
+                                    <tr>
+                                        <td>{{ rsvp[1] }}</td>
+                                        <td>{{ rsvp[2] }}</td>
+                                        <td>{{ rsvp[4] }}</td>
+                                        <td>{{ rsvp[5] }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No RSVPs yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Comments Section (if available) -->
+            {% if comments is defined %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Comments</h5>
+                </div>
+                <div class="card-body">
+                    {% if comments %}
+                        {% for comment in comments %}
+                        <div class="comment mb-3 p-3 border rounded">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ comment[3] if comment[3] else 'Anonymous' }}</strong>
+                                <small class="text-muted">{{ comment[4] }}</small>
+                            </div>
+                            <p class="mb-0 mt-2">{{ comment[1] }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No comments yet.</p>
+                    {% endif %}
+
+                    <!-- Add Comment Form -->
+                    <div class="mt-4">
+                        <h6>Add a Comment</h6>
+                        <form id="commentForm" method="post" action="{{ url_for('event_rsvp.add_event_comment', event_id=event[0]) }}">
+                            <div class="mb-3">
+                                <input type="text" class="form-control" name="author_name" placeholder="Your Name" required>
+                            </div>
+                            <div class="mb-3">
+                                <input type="email" class="form-control" name="author_email" placeholder="Your Email" required>
+                            </div>
+                            <div class="mb-3">
+                                <textarea class="form-control" name="content" rows="3" placeholder="Your comment..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Post Comment</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Action Buttons -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    {% if rsvps is defined %}
+                    <button class="btn btn-success btn-lg w-100 mb-3" data-bs-toggle="modal" data-bs-target="#rsvpModal">
+                        <i class="fas fa-check-circle me-2"></i>RSVP for Event
+                    </button>
+                    {% endif %}
+
+                    <a href="{{ url_for('events') }}" class="btn btn-outline-secondary w-100 mb-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Events
+                    </a>
+
+                    {% if current_user and current_user.permissions and current_user.permissions.can_post_events %}
+                    <a href="{{ url_for('events_dashboard') }}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-cog me-2"></i>Manage Events
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Event Stats -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Event Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="h4 text-primary">{{ attendee_count }}</div>
+                            <small class="text-muted">Attendees</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="h4 text-success">
+                                {% if event[5] %}
+                                    {{ ((attendee_count / event[5]) * 100)|round|int }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">Capacity</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Similar Events -->
+            {% if similar_events %}
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0">Similar Events</h6>
+                </div>
+                <div class="card-body">
+                    {% for similar_event in similar_events %}
+                    <div class="mb-3 pb-3 border-bottom">
+                        <h6 class="mb-1">
+                            <a href="{{ url_for('event_rsvp.event_detail', event_id=similar_event[0]) }}" class="text-decoration-none">
+                                {{ similar_event[1] }}
+                            </a>
+                        </h6>
+                        <p class="mb-1 text-muted small">{{ similar_event[3] }} at {{ similar_event[4] if similar_event[4] else 'TBD' }}</p>
+                        <small class="text-muted">{{ similar_event[13] }} attendees</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- RSVP Modal -->
+{% if rsvps is defined %}
+<div class="modal fade" id="rsvpModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">RSVP for {{ event[1] }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="rsvpForm" method="post" action="{{ url_for('event_rsvp.submit_rsvp', event_id=event[0]) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rsvpName" class="form-label">Full Name *</label>
+                        <input type="text" class="form-control" id="rsvpName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rsvpEmail" class="form-label">Email Address *</label>
+                        <input type="email" class="form-control" id="rsvpEmail" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rsvpPhone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="rsvpPhone" name="phone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rsvpAttendees" class="form-label">Number of Attendees</label>
+                        <input type="number" class="form-control" id="rsvpAttendees" name="attendees" value="1" min="1" max="10">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rsvpNotes" class="form-label">Additional Notes</label>
+                        <textarea class="form-control" id="rsvpNotes" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Submit RSVP</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+// Handle RSVP form submission
+document.getElementById('rsvpForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch(this.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('RSVP submitted successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    });
+});
+
+// Handle comment form submission
+document.getElementById('commentForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch(this.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Comment added successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    });
+});
+</script>
+
+{% endblock %}

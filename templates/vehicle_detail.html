@@ -1,0 +1,539 @@
+{% extends "base.html" %}
+
+{% block title %}{{ vehicle[1] }} {{ vehicle[2] }} - Vehicle Details{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 animate-fade-in">
+                    <h1 class="hero-title">
+                        {{ vehicle[1] }} <span class="text-green">{{ vehicle[2] }}</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        {{ vehicle[3] }} {{ vehicle[4] }} • Owned by {{ vehicle[6] }} {{ vehicle[7] }}
+                    </p>
+                </div>
+                <div class="col-lg-6 animate-slide-in">
+                    <div class="car-silhouette">
+                        <i class="fas fa-car"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Vehicle Images -->
+            <div class="col-lg-8">
+                <div class="vehicle-detail-card">
+                    <div class="vehicle-image-gallery">
+                        {% if photos %}
+                        <div id="vehicleCarousel" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                {% for photo in photos %}
+                                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                    <img src="{{ photo[2] }}" class="d-block w-100" alt="{{ photo[3] or 'Vehicle photo' }}">
+                                    {% if photo[3] %}
+                                    <div class="carousel-caption">
+                                        <p>{{ photo[3] }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#vehicleCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon"></span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#vehicleCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon"></span>
+                            </button>
+                        </div>
+                        {% else %}
+                        <div class="vehicle-placeholder-large">
+                            <i class="fas fa-car"></i>
+                            <p>No photos available</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Vehicle Stats -->
+                    <div class="vehicle-stats-bar">
+                        <div class="stat-item">
+                            <i class="fas fa-eye"></i>
+                            <span>{{ vehicle[10] or 0 }} views</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-heart"></i>
+                            <span id="likeCount">{{ like_count }}</span> likes
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-images"></i>
+                            <span>{{ photos|length }}</span> photos
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="vehicle-actions">
+                        {% if current_user %}
+                        <button class="btn btn-primary" id="likeBtn">
+                            <i class="fas fa-heart"></i>
+                            {% if user_liked %}Unlike{% else %}Like{% endif %}
+                        </button>
+                        <button class="btn btn-outline-primary" id="favoriteBtn">
+                            <i class="fas fa-star"></i>
+                            <span id="favoriteText">Add to Favorites</span>
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="shareVehicle()">
+                            <i class="fas fa-share"></i> Share
+                        </button>
+                        {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Login to Like
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <h3>Comments</h3>
+
+                    {% if current_user %}
+                    <div class="comment-form">
+                        <form id="commentForm">
+                            <div class="mb-3">
+                                <textarea class="form-control" id="commentContent" rows="3" placeholder="Share your thoughts about this vehicle..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Post Comment</button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <a href="{{ url_for('login') }}">Login</a> to join the conversation!
+                    </div>
+                    {% endif %}
+
+                    <div id="commentsList">
+                        {% for comment in comments %}
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <strong>{{ comment[6] }} {{ comment[7] }}</strong>
+                                <small class="text-muted">{{ comment[5] }}</small>
+                            </div>
+                            <div class="comment-content">
+                                {{ comment[1] }}
+                            </div>
+                            <div class="comment-actions">
+                                <button class="btn btn-sm btn-link reply-btn" data-comment-id="{{ comment[0] }}">
+                                    <i class="fas fa-reply"></i> Reply
+                                </button>
+                                {% if current_user and current_user.id == comment[2] %}
+                                <button class="btn btn-sm btn-link text-danger">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Vehicle Specifications -->
+                <div class="spec-card">
+                    <h4>Vehicle Specifications</h4>
+                    <div class="spec-list">
+                        <div class="spec-item">
+                            <span class="spec-label">Make:</span>
+                            <span class="spec-value">{{ vehicle[1] }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Model:</span>
+                            <span class="spec-value">{{ vehicle[2] }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Year:</span>
+                            <span class="spec-value">{{ vehicle[3] }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Color:</span>
+                            <span class="spec-value">{{ vehicle[4] }}</span>
+                        </div>
+                        {% if vehicle[5] %}
+                        <div class="spec-item">
+                            <span class="spec-label">VIN:</span>
+                            <span class="spec-value">{{ vehicle[5] }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Owner Information -->
+                <div class="owner-card">
+                    <h4>Owner Information</h4>
+                    <div class="owner-info">
+                        <div class="owner-avatar">
+                            <i class="fas fa-user-circle fa-3x"></i>
+                        </div>
+                        <div class="owner-details">
+                            <h5>{{ vehicle[6] }} {{ vehicle[7] }}</h5>
+                            <p class="text-muted">@{{ vehicle[8] }}</p>
+                        </div>
+                    </div>
+                    {% if current_user and current_user.id != vehicle[9] %}
+                    <button class="btn btn-outline-primary w-100" onclick="contactOwner()">
+                        <i class="fas fa-envelope"></i> Contact Owner
+                    </button>
+                    {% endif %}
+                </div>
+
+                <!-- Similar Vehicles -->
+                {% if similar_vehicles %}
+                <div class="similar-vehicles-card">
+                    <h4>Similar Vehicles</h4>
+                    <div class="similar-vehicles-list">
+                        {% for similar in similar_vehicles %}
+                        <div class="similar-vehicle-item">
+                            <div class="similar-vehicle-image">
+                                {% if similar.photo_count > 0 %}
+                                <img src="/static/images/vehicle-placeholder.jpg" alt="{{ similar[1] }} {{ similar[2] }}">
+                                {% else %}
+                                <i class="fas fa-car"></i>
+                                {% endif %}
+                            </div>
+                            <div class="similar-vehicle-info">
+                                <h6>{{ similar[1] }} {{ similar[2] }}</h6>
+                                <p class="text-muted">{{ similar[3] }}</p>
+                                <a href="{{ url_for('vehicle_gallery.vehicle_detail', vehicle_id=similar[0]) }}" class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Vehicle Detail Styles */
+.vehicle-detail-card {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.vehicle-image-gallery {
+    margin-bottom: 20px;
+}
+
+.carousel-item img {
+    height: 400px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.vehicle-placeholder-large {
+    height: 400px;
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    color: var(--primary-green);
+    font-size: 3rem;
+}
+
+.vehicle-placeholder-large p {
+    margin-top: 20px;
+    color: rgba(0, 255, 65, 0.7);
+}
+
+.vehicle-stats-bar {
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 0;
+    border-top: 1px solid rgba(0, 255, 65, 0.2);
+    border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+    margin: 20px 0;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(0, 255, 65, 0.8);
+    font-weight: 500;
+}
+
+.vehicle-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.comments-section {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    padding: 30px;
+}
+
+.comments-section h3 {
+    color: var(--primary-green);
+    margin-bottom: 20px;
+}
+
+.comment-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 65, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.comment-content {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.spec-card, .owner-card, .similar-vehicles-card {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+.spec-card h4, .owner-card h4, .similar-vehicles-card h4 {
+    color: var(--primary-green);
+    margin-bottom: 20px;
+}
+
+.spec-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.spec-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0, 255, 65, 0.1);
+}
+
+.spec-label {
+    font-weight: 600;
+    color: rgba(0, 255, 65, 0.8);
+}
+
+.owner-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.owner-avatar {
+    color: var(--primary-green);
+}
+
+.similar-vehicle-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(0, 255, 65, 0.1);
+}
+
+.similar-vehicle-image {
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 255, 65, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: var(--primary-green);
+}
+
+.similar-vehicle-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .vehicle-actions {
+        flex-direction: column;
+    }
+
+    .vehicle-actions .btn {
+        width: 100%;
+    }
+
+    .owner-info {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .similar-vehicle-item {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const vehicleId = {{ vehicle[0] }};
+    let userLiked = {{ user_liked|tojson|safe }};
+
+    // Like button functionality
+    const likeBtn = document.getElementById('likeBtn');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', function() {
+            fetch(`/api/vehicle/${vehicleId}/like`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    userLiked = data.liked;
+                    likeBtn.innerHTML = `<i class="fas fa-heart"></i> ${userLiked ? 'Unlike' : 'Like'}`;
+                    document.getElementById('likeCount').textContent = data.like_count;
+
+                    if (userLiked) {
+                        likeBtn.classList.remove('btn-primary');
+                        likeBtn.classList.add('btn-danger');
+                    } else {
+                        likeBtn.classList.remove('btn-danger');
+                        likeBtn.classList.add('btn-primary');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to toggle like. Please try again.');
+            });
+        });
+    }
+
+    // Favorite button functionality
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    if (favoriteBtn) {
+        favoriteBtn.addEventListener('click', function() {
+            fetch(`/api/vehicle/${vehicleId}/favorite`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const text = data.favorited ? 'Remove from Favorites' : 'Add to Favorites';
+                    document.getElementById('favoriteText').textContent = text;
+
+                    if (data.favorited) {
+                        favoriteBtn.classList.remove('btn-outline-primary');
+                        favoriteBtn.classList.add('btn-primary');
+                    } else {
+                        favoriteBtn.classList.remove('btn-primary');
+                        favoriteBtn.classList.add('btn-outline-primary');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to toggle favorite. Please try again.');
+            });
+        });
+    }
+
+    // Comment form functionality
+    const commentForm = document.getElementById('commentForm');
+    if (commentForm) {
+        commentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const content = document.getElementById('commentContent').value.trim();
+
+            if (!content) {
+                alert('Please enter a comment.');
+                return;
+            }
+
+            fetch(`/api/vehicle/${vehicleId}/comment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `content=${encodeURIComponent(content)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('commentContent').value = '';
+                    location.reload(); // Simple reload for now
+                } else {
+                    alert(data.error || 'Failed to post comment.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to post comment. Please try again.');
+            });
+        });
+    }
+});
+
+function shareVehicle() {
+    const url = window.location.href;
+    const title = "{{ vehicle[1] }} {{ vehicle[2] }}";
+
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            url: url
+        });
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Link copied to clipboard!');
+        });
+    }
+}
+
+function contactOwner() {
+    // This would open a contact modal or redirect to a contact form
+    alert('Contact feature coming soon!');
+}
+</script>
+{% endblock %}

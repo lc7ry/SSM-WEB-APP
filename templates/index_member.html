@@ -1,0 +1,334 @@
+{% extends "base_readonly.html" %}
+
+{% block title %}Welcome - Suli Street Meet{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container-fluid">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6 animate-fade-in">
+                <h1 class="hero-title">Welcome to Suli Street Meet</h1>
+                <p class="hero-subtitle">Your exclusive access to vehicle events and community places</p>
+                <div class="hero-buttons">
+                    <a href="{{ url_for('events') }}" class="btn btn-primary btn-lg me-3 animate-fade-in-delay">
+                        <i class="fas fa-calendar-alt"></i> View Events
+                    </a>
+                    <a href="{{ url_for('places') }}" class="btn btn-outline-primary btn-lg animate-fade-in-delay-2">
+                        <i class="fas fa-map-marker-alt"></i> Explore Places
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 animate-slide-in">
+                <div class="hero-image">
+                    <i class="fas fa-car-side fa-10x text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid mt-5">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="feature-card text-center animate-fade-in-delay">
+                <div class="feature-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h3>Vehicle Events</h3>
+                <p>Stay updated with the latest car meets, shows, and automotive gatherings in your area.</p>
+                <a href="{{ url_for('events') }}" class="btn btn-primary">Browse Events</a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="feature-card text-center animate-fade-in-delay-2">
+                <div class="feature-icon">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <h3>Community Places</h3>
+                <p>Discover popular meeting spots and locations where car enthusiasts gather.</p>
+                <a href="{{ url_for('places') }}" class="btn btn-primary">Explore Places</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Me Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4 animate-fade-in" style="color: var(--primary-green); text-shadow: 0 0 20px rgba(0, 255, 65, 0.5), 0 0 40px rgba(0, 255, 65, 0.3);">About Me</h2>
+            <div class="about-card animate-fade-in-delay">
+                <div class="about-content">
+                    <div class="about-avatar">
+                        <i class="fas fa-user-circle fa-4x"></i>
+                    </div>
+                    <div class="about-text">
+                        <h4>Welcome to My Dashboard</h4>
+                        <p>I'm passionate about cars and the car meet community. Here you can find all the latest events, places, and connect with fellow enthusiasts. Feel free to explore and join the fun!</p>
+                        <div class="social-links mt-3">
+                            <a href="https://instagram.com/lc7ry" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fab fa-instagram"></i> Follow on Instagram
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modern enhancements */
+.hero-section {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary-green);
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 255, 65, 0.5), 0 0 40px rgba(0, 255, 65, 0.3);
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.2);
+}
+
+.hero-buttons .btn {
+    border-radius: 30px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.hero-buttons .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 255, 65, 0.3);
+}
+
+.feature-card {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 20px;
+    padding: 40px 30px;
+    text-align: center;
+    transition: all 0.4s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.feature-card:hover::before {
+    left: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 255, 65, 0.3);
+    border-color: var(--primary-green);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    color: var(--primary-green);
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+    transform: scale(1.1);
+}
+
+.feature-card h3 {
+    color: var(--primary-green);
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-shadow: 0 0 15px rgba(0, 255, 65, 0.4), 0 0 30px rgba(0, 255, 65, 0.2);
+}
+
+.feature-card p {
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+    text-shadow: 0 0 8px rgba(0, 255, 65, 0.2), 0 0 15px rgba(0, 255, 65, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+    border: none;
+    color: var(--bg-dark);
+    font-weight: 600;
+    padding: 12px 25px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 255, 65, 0.4);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--primary-green);
+    color: var(--primary-green);
+    background: transparent;
+    font-weight: 600;
+    padding: 12px 25px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-green);
+    color: var(--bg-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 255, 65, 0.4);
+}
+
+.about-card {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 20px;
+    padding: 50px 40px;
+    text-align: center;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.about-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.about-card:hover::before {
+    left: 100%;
+}
+
+.about-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 255, 65, 0.3);
+    border-color: var(--primary-green);
+}
+
+.about-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.about-avatar {
+    color: var(--primary-green);
+    transition: all 0.3s ease;
+}
+
+.about-card:hover .about-avatar {
+    transform: scale(1.1);
+}
+
+.about-text h4 {
+    color: var(--primary-green);
+    font-weight: 600;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    text-shadow: 0 0 15px rgba(0, 255, 65, 0.4), 0 0 30px rgba(0, 255, 65, 0.2);
+}
+
+.about-text p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    text-shadow: 0 0 8px rgba(0, 255, 65, 0.2), 0 0 15px rgba(0, 255, 65, 0.1);
+}
+
+/* Animation classes */
+.animate-fade-in {
+    opacity: 0;
+    animation: fadeIn 1s ease-out forwards;
+}
+
+.animate-fade-in-delay {
+    opacity: 0;
+    animation: fadeIn 1s ease-out 0.3s forwards;
+}
+
+.animate-fade-in-delay-2 {
+    opacity: 0;
+    animation: fadeIn 1s ease-out 0.6s forwards;
+}
+
+.animate-slide-in {
+    opacity: 0;
+    animation: slideIn 1s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .feature-card {
+        margin-bottom: 30px;
+    }
+
+    .about-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .about-avatar {
+        margin-bottom: 20px;
+    }
+}
+</style>
+{% endblock %}

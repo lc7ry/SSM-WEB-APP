@@ -1,0 +1,138 @@
+{% extends "base_readonly.html" %}
+
+{% block title %}Your Ticket - {{ ticket[2] }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-lg-6 animate-fade-in">
+                    <h1 class="hero-title" style="text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 255, 65, 0.5), 0 0 40px rgba(0, 255, 65, 0.3);">
+                        Your <span class="text-green" style="text-shadow: 0 0 15px rgba(0, 255, 65, 0.4), 0 0 30px rgba(0, 255, 65, 0.2);">Ticket</span>
+                    </h1>
+                    <p class="hero-subtitle" style="text-shadow: 0 0 10px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.2);">
+                        Keep this ticket safe for event entry
+                    </p>
+                </div>
+                <div class="col-lg-6 animate-slide-in">
+                    <div class="car-silhouette">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Success Message -->
+                <div class="alert alert-success mb-4" style="background: rgba(0, 255, 65, 0.1); border: 1px solid rgba(0, 255, 65, 0.3);">
+                    <i class="fas fa-check-circle"></i>
+                    <strong>Ticket Purchased Successfully!</strong> Your ticket has been generated and is ready for use.
+                </div>
+
+                <!-- Ticket Card -->
+                <div class="feature-card mb-4">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h3 style="color: var(--primary-green); margin-bottom: 20px;">
+                                <i class="fas fa-ticket-alt"></i> Event Ticket
+                            </h3>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Ticket ID:</strong> <code>{{ ticket[0] }}</code></p>
+                                    <p><strong>Event:</strong> {{ event[0] }}</p>
+                                    <p><strong>Date:</strong> {{ event[1] }}</p>
+                                    <p><strong>Location:</strong> {{ event[2] }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Buyer:</strong> {{ ticket[2] }}</p>
+                                    <p><strong>Email:</strong> {{ ticket[3] }}</p>
+                                    {% if ticket[4] %}
+                                    <p><strong>Phone:</strong> {{ ticket[4] }}</p>
+                                    {% endif %}
+                                    <p><strong>Price:</strong> ${{ "%.2f"|format(ticket[5]) }}</p>
+                                    <p><strong>Purchase Date:</strong> {{ ticket[6] }}</p>
+                                    <p><strong>Status:</strong>
+                                        <span class="badge bg-success">Valid</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h5>QR Code</h5>
+                            <p class="text-muted small">Scan this at the event entrance</p>
+                            <img src="{{ qr_code_url }}" alt="Ticket QR Code" class="img-fluid" style="max-width: 200px; border: 2px solid var(--primary-green); border-radius: 10px;">
+                            <br><br>
+                            <a href="{{ qr_code_url }}" download="ticket_{{ ticket[0] }}.png" class="btn btn-sm btn-primary">
+                                <i class="fas fa-download"></i> Download QR Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="feature-card">
+                    <h4 style="color: var(--primary-green); margin-bottom: 20px;">
+                        <i class="fas fa-info-circle"></i> Important Instructions
+                    </h4>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>What to Bring:</h5>
+                            <ul>
+                                <li>This ticket (digital or printed)</li>
+                                <li>Valid photo ID</li>
+                                <li>Your smartphone for QR code scanning</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Entry Process:</h5>
+                            <ul>
+                                <li>Arrive at the event venue</li>
+                                <li>Present your ticket at the entrance</li>
+                                <li>Staff will scan your QR code</li>
+                                <li>Enjoy the event!</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning mt-3" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Note:</strong> Each ticket can only be used once. Keep your ticket secure and don't share the QR code with others.
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-3 justify-content-center mt-4">
+                    <a href="{{ url_for('ticket.buy_ticket') }}" class="btn btn-secondary">
+                        <i class="fas fa-plus"></i> Buy Another Ticket
+                    </a>
+                    <button onclick="window.print()" class="btn btn-primary">
+                        <i class="fas fa-print"></i> Print Ticket
+                    </button>
+                    <a href="{{ url_for('events') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-calendar"></i> View All Events
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .alert, .hero-section, .navbar {
+        display: none !important;
+    }
+    .feature-card {
+        border: 2px solid #000 !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %}

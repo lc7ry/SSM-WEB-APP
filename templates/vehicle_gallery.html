@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block title %}Vehicle Gallery - SuliStreetMeet{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 animate-fade-in">
+                    <h1 class="hero-title">
+                        Vehicle <span class="text-green">Gallery</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        Explore our amazing collection of cars and discover your next favorite ride
+                    </p>
+                </div>
+                <div class="col-lg-6 animate-slide-in">
+                    <div class="car-silhouette">
+                        <i class="fas fa-images"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <!-- Featured Vehicles Showcase -->
+        {% if featured_vehicles %}
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4 animate-fade-in" style="color: var(--primary-green); text-shadow: 0 0 20px rgba(0, 255, 65, 0.5), 0 0 40px rgba(0, 255, 65, 0.3);">Featured Vehicles</h2>
+                <div class="row">
+                    {% for vehicle in featured_vehicles %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="feature-card animate-fade-in">
+                            <div class="vehicle-image-container">
+                                {% if vehicle.photo_count > 0 %}
+                                <img src="/static/images/vehicle-placeholder.jpg" alt="{{ vehicle[2] }} {{ vehicle[3] }}" class="vehicle-image">
+                                {% else %}
+                                <div class="vehicle-placeholder">
+                                    <i class="fas fa-car"></i>
+                                </div>
+                                {% endif %}
+                                <div class="vehicle-overlay">
+                                    <span class="badge badge-featured">Featured</span>
+                                </div>
+                            </div>
+                            <h4>{{ vehicle[2] }} {{ vehicle[3] }}</h4>
+                            <p class="text-muted">{{ vehicle[4] }} • {{ vehicle[5] }}</p>
+                            <a href="{{ url_for('vehicle_gallery.vehicle_detail', vehicle_id=vehicle[0]) }}" class="btn btn-primary">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Filters and Search -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="filter-section">
+                    <form method="GET" action="{{ url_for('vehicle_gallery.vehicle_gallery') }}" class="row g-3">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" name="search" placeholder="Search vehicles..." value="{{ search }}">
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" name="make">
+                                <option value="">All Makes</option>
+                                {% for make in makes %}
+                                <option value="{{ make[0] }}" {% if make[0] == make_filter %}selected{% endif %}>{{ make[0] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" name="sort">
+                                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest First</option>
+                                <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
+                                <option value="most_liked" {% if sort_by == 'most_liked' %}selected{% endif %}>Most Liked</option>
+                                <option value="most_viewed" {% if sort_by == 'most_viewed' %}selected{% endif %}>Most Viewed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="featured" value="true" id="featuredCheck" {% if featured_only %}checked{% endif %}>
+                                <label class="form-check-label" for="featuredCheck">
+                                    Featured Only
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle Grid -->
+        <div class="row">
+            {% for vehicle in vehicles %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="vehicle-card animate-fade-in">
+                    <div class="vehicle-image-container">
+                        {% if vehicle.photo_count > 0 %}
+                        <img src="/static/images/vehicle-placeholder.jpg" alt="{{ vehicle[1] }} {{ vehicle[2] }}" class="vehicle-image">
+                        {% else %}
+                        <div class="vehicle-placeholder">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        {% endif %}
+                        {% if vehicle[11] %} <!-- Featured flag -->
+                        <div class="vehicle-overlay">
+                            <span class="badge badge-featured">Featured</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="vehicle-info">
+                        <h5>{{ vehicle[1] }} {{ vehicle[2] }}</h5>
+                        <p class="text-muted">{{ vehicle[3] }} • {{ vehicle[4] }}</p>
+                        <div class="vehicle-stats">
+                            <span class="stat-item">
+                                <i class="fas fa-heart"></i> {{ vehicle.like_count or 0 }}
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-eye"></i> {{ vehicle[10] or 0 }}
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-images"></i> {{ vehicle.photo_count or 0 }}
+                            </span>
+                        </div>
+                        <div class="vehicle-actions">
+                            <a href="{{ url_for('vehicle_gallery.vehicle_detail', vehicle_id=vehicle[0]) }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            {% if current_user %}
+                            <button class="btn btn-outline-danger btn-sm like-btn" data-vehicle-id="{{ vehicle[0] }}">
+                                <i class="fas fa-heart"></i> Like
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="text-center">
+                    <i class="fas fa-car fa-3x text-muted mb-3"></i>
+                    <h3>No vehicles found</h3>
+                    <p class="text-muted">Try adjusting your search criteria or check back later for new additions.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Load More Button (for future pagination) -->
+        {% if vehicles %}
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button class="btn btn-outline-primary" id="loadMoreBtn" style="display: none;">
+                    <i class="fas fa-plus"></i> Load More Vehicles
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+/* Vehicle Gallery Styles */
+.vehicle-card {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.vehicle-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 255, 65, 0.2);
+    border-color: var(--primary-green);
+}
+
+.vehicle-image-container {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.vehicle-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.vehicle-card:hover .vehicle-image {
+    transform: scale(1.05);
+}
+
+.vehicle-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--primary-green);
+}
+
+.vehicle-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.badge-featured {
+    background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+    color: var(--bg-dark);
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.vehicle-info {
+    padding: 20px;
+}
+
+.vehicle-info h5 {
+    color: var(--primary-green);
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.vehicle-stats {
+    display: flex;
+    gap: 15px;
+    margin: 10px 0;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    color: rgba(0, 255, 65, 0.8);
+}
+
+.vehicle-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.filter-section {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.btn-outline-danger {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+    background: #dc3545;
+    color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .vehicle-actions {
+        flex-direction: column;
+    }
+
+    .vehicle-actions .btn {
+        width: 100%;
+    }
+
+    .filter-section .row > div {
+        margin-bottom: 10px;
+    }
+}
+</style>
+
+<script>
+// Like functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const likeButtons = document.querySelectorAll('.like-btn');
+
+    likeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const vehicleId = this.getAttribute('data-vehicle-id');
+            const icon = this.querySelector('i');
+
+            fetch(`/api/vehicle/${vehicleId}/like`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.liked) {
+                        this.classList.remove('btn-outline-danger');
+                        this.classList.add('btn-danger');
+                        icon.classList.add('text-danger');
+                    } else {
+                        this.classList.remove('btn-danger');
+                        this.classList.add('btn-outline-danger');
+                        icon.classList.remove('text-danger');
+                    }
+
+                    // Update like count if displayed
+                    const statItem = this.closest('.vehicle-card').querySelector('.stat-item i.fa-heart');
+                    if (statItem) {
+                        const countSpan = statItem.nextSibling;
+                        if (countSpan) {
+                            countSpan.textContent = data.like_count;
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to toggle like. Please try again.');
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Stories - SuliStreetMeet</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    {% include 'base.html' %}
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i class="fas fa-blog text-primary"></i> Community Stories</h1>
+                    {% if current_user %}
+                    <a href="{{ url_for('blog.create_blog_post') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Share Your Story
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Filters -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form method="GET" class="row g-3">
+                            <div class="col-md-4">
+                                <label for="category" class="form-label">Category</label>
+                                <select class="form-select" id="category" name="category">
+                                    <option value="all" {% if category == 'all' %}selected{% endif %}>All Categories</option>
+                                    {% for cat in categories %}
+                                    <option value="{{ cat[0] }}" {% if category == cat[0] %}selected{% endif %}>{{ cat[0] }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="featured" name="featured" value="true" {% if featured_only %}checked{% endif %}>
+                                    <label class="form-check-label" for="featured">
+                                        Featured stories only
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i> Filter</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Blog Posts -->
+                <div id="blog-posts">
+                    {% for post in posts %}
+                    <div class="card mb-4 blog-post-card">
+                        <div class="card-body">
+                            {% if post[6] %} <!-- Featured -->
+                            <div class="badge bg-warning text-dark mb-2">
+                                <i class="fas fa-star"></i> Featured
+                            </div>
+                            {% endif %}
+
+                            <h3 class="card-title">
+                                <a href="{{ url_for('blog.blog_post', post_id=post[0]) }}" class="text-decoration-none">
+                                    {{ post[1] }}
+                                </a>
+                            </h3>
+
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-user"></i> {{ post.FirstName }} {{ post.LastName }}
+                                    <i class="fas fa-calendar ms-3"></i> {{ post[8] }}
+                                    {% if post[4] %}
+                                    <i class="fas fa-tag ms-3"></i> {{ post[4] }}
+                                    {% endif %}
+                                </small>
+                            </div>
+
+                            <p class="card-text">{{ post[2][:300] }}{% if post[2]|length > 300 %}...{% endif %}</p>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="{{ url_for('blog.blog_post', post_id=post[0]) }}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i> Read More
+                                    </a>
+                                    {% if post[5] %}
+                                    <div class="d-inline ms-2">
+                                        {% for tag in post[5].split(',') %}
+                                        <span class="badge bg-secondary">{{ tag.strip() }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="fas fa-heart"></i> 0 likes
+                                    <i class="fas fa-comment ms-2"></i> 0 comments
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if total_pages > 1 %}
+                <nav aria-label="Blog pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('blog.blog_home', page=page-1, category=category, featured=featured_only) }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for page_num in range(max(1, page-2), min(total_pages+1, page+3)) %}
+                        <li class="page-item {% if page_num == page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('blog.blog_home', page=page_num, category=category, featured=featured_only) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                        {% endfor %}
+
+                        {% if page < total_pages %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('blog.blog_home', page=page+1, category=category, featured=featured_only) }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% if not posts %}
+                <div class="text-center py-5">
+                    <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                    <h4>No stories found</h4>
+                    <p class="text-muted">Be the first to share your car meet experience!</p>
+                    {% if current_user %}
+                    <a href="{{ url_for('blog.create_blog_post') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Write Your Story
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Featured Posts -->
+                {% if featured_posts %}
+                <div class="card mb-4">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0"><i class="fas fa-star"></i> Featured Stories</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for post in featured_posts %}
+                        <div class="mb-3 pb-3 border-bottom">
+                            <h6 class="mb-1">
+                                <a href="{{ url_for('blog.blog_post', post_id=post[0]) }}" class="text-decoration-none">
+                                    {{ post[1] }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar"></i> {{ post[2] }}
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Categories -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-tags"></i> Categories</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('blog.blog_home') }}" class="btn btn-outline-secondary btn-sm">
+                                All Stories
+                            </a>
+                            {% for cat in categories %}
+                            <a href="{{ url_for('blog.blog_home', category=cat[0]) }}" class="btn btn-outline-secondary btn-sm">
+                                {{ cat[0] }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Posts -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Stories</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for post in posts[:5] %}
+                        <div class="mb-3 pb-3 border-bottom">
+                            <h6 class="mb-1">
+                                <a href="{{ url_for('blog.blog_post', post_id=post[0]) }}" class="text-decoration-none">
+                                    {{ post[1] }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar"></i> {{ post[8] }}<br>
+                                <i class="fas fa-user"></i> {{ post.FirstName }} {{ post.LastName }}
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Community Stats -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Community Stats</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="h4 mb-0">{{ posts|length }}</div>
+                                <small class="text-muted">Stories</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="h4 mb-0">{{ categories|length }}</div>
+                                <small class="text-muted">Categories</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
