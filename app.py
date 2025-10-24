@@ -1592,10 +1592,14 @@ if __name__ == '__main__':
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
-    # DuckDNS update function
+    # DuckDNS update function - only run locally, not on Vercel
     def update_duckdns():
         """Update DuckDNS with current IP address"""
         try:
+            if not requests:
+                logger.warning("requests module not available, skipping DuckDNS update")
+                return False
+
             duckdns_token = '4b5d2630-194e-49f0-bd46-bc17f7729b36'
             domain = 'sulistreetmeet'
 
@@ -1618,9 +1622,10 @@ if __name__ == '__main__':
             logger.error(f"Error updating DuckDNS: {e}")
             return False
 
-    # Update DuckDNS on startup
-    logger.info("Updating DuckDNS on startup...")
-    update_duckdns()
+    # Update DuckDNS on startup - only if running locally
+    if os.environ.get('VERCEL') != '1':
+        logger.info("Updating DuckDNS on startup...")
+        update_duckdns()
 
     # Run with threaded=True for better tunnel compatibility and IPv6 support
     app.run(debug=True, host='::', port=5000, threaded=True)
