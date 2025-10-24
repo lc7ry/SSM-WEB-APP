@@ -8,7 +8,10 @@ import subprocess
 import threading
 import time
 import secrets
-import requests
+try:
+    import requests
+except ImportError:
+    requests = None
 from datetime import datetime, timedelta
 from database_manager_hybrid import db_manager
 from permissions_manager import PermissionManager, require_permission, require_admin, get_user_role
