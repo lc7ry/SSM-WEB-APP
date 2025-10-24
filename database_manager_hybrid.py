@@ -14,7 +14,7 @@ class HybridDatabaseManager:
     def __init__(self):
         self.current_dir = os.path.dirname(os.path.abspath(__file__))
 
-        # Check if we're in Netlify environment with PostgreSQL
+        # Check if we're in Vercel/Netlify environment with PostgreSQL
         database_url = os.environ.get('DATABASE_URL') or os.environ.get('NETLIFY_DATABASE_URL')
 
         if database_url and 'postgres' in database_url:
@@ -22,9 +22,14 @@ class HybridDatabaseManager:
                 from database_manager_postgres import PostgreSQLDatabaseManager
                 self.db_manager = PostgreSQLDatabaseManager(database_url)
                 self.db_type = 'postgres'
-                logger.info("Using PostgreSQL database manager (Netlify)")
-            except ImportError:
-                logger.warning("PostgreSQL manager not available, falling back to SQLite")
+                logger.info("Using PostgreSQL database manager (Vercel/Netlify)")
+            except ImportError as e:
+                logger.warning(f"PostgreSQL manager not available ({e}), falling back to SQLite")
+                from database_manager_sqlite import SQLiteDatabaseManager
+                self.db_manager = SQLiteDatabaseManager()
+                self.db_type = 'sqlite'
+            except Exception as e:
+                logger.warning(f"PostgreSQL connection failed ({e}), falling back to SQLite")
                 from database_manager_sqlite import SQLiteDatabaseManager
                 self.db_manager = SQLiteDatabaseManager()
                 self.db_type = 'sqlite'
