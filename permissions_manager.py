@@ -93,6 +93,17 @@ def require_permission(permission_type):
         return decorated_function
     return decorator
 
+def require_login(f):
+    """Decorator to require user login"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('login'))
+
+        return f(*args, **kwargs)
+    return decorated_function
+
 def require_admin(f):
     """Decorator to require admin permissions (CanEditMembers)"""
     return require_permission('edit_members')(f)

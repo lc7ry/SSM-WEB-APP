@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, send_file
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from functools import wraps
@@ -8,12 +8,25 @@ import subprocess
 import threading
 import time
 import secrets
+import requests
 from datetime import datetime, timedelta
 from database_manager_hybrid import db_manager
 from permissions_manager import PermissionManager, require_permission, require_admin, get_user_role
 from ticket_system import init_app as init_ticket_app
+from system_analytics import init_app as init_analytics_app
+from vehicle_gallery import init_app as init_vehicle_gallery_app
+from event_rsvp import init_app as init_event_rsvp_app
+from blog_system import init_app as init_blog_app
 from flask_mail import Mail, Message
 from dotenv import load_dotenv
+from PIL import Image, ImageDraw, ImageFont
+import io
+import zipfile
+import tempfile
+
+# Set DATABASE_URL for Netlify
+if os.environ.get('NETLIFY_DATABASE_URL'):
+    os.environ['DATABASE_URL'] = os.environ['NETLIFY_DATABASE_URL']
 
 # Load environment variables from .env file
 load_dotenv()
@@ -22,6 +35,117 @@ app = Flask(__name__)
 
 # Initialize ticket system
 init_ticket_app(app)
+
+# Initialize analytics system
+init_analytics_app(app)
+
+# Initialize vehicle gallery system
+init_vehicle_gallery_app(app)
+
+# Initialize event RSVP system
+init_event_rsvp_app(app)
+
+# Initialize blog system
+init_blog_app(app)
+
+# --- Promo Code Utilities and Routes ---
+
+def generate_promo_code():
+    """Generate a promo code in the format XXXX-XXXX-XXXX"""
+    raw_code = secrets.token_hex(6).upper()  # 12 hex chars
+    # Format as XXXX-XXXX-XXXX
+    return f"{raw_code[:4]}-{raw_code[4:8]}-{raw_code[8:12]}"
+
+@app.route('/promo_codes', methods=['GET', 'POST'])
+@require_admin
+def promo_codes():
+    if request.method == 'POST':
+        # Bulk generate promo codes
+        try:
+            count = int(request.form.get('count', 10))
+            discount_type = request.form.get('discount_type', 'percentage')
+            discount_value = float(request.form.get('discount_value', 10))
+            usage_limit = int(request.form.get('usage_limit', 1))
+            expiration_str = request.form.get('expiration_date', '')
+            expiration_date = None
+            if expiration_str:
+                expiration_date = datetime.strptime(expiration_str, '%Y-%m-%d').date()
+
+            created_by = session.get('user_id')
+            created_date = datetime.now().date()
+
+            generated_codes = []
+            for _ in range(count):
+                code = generate_promo_code()
+                # Insert into promo_codes table
+                insert_query = """
+                    INSERT INTO promo_codes (Code, DiscountType, DiscountValue, UsageLimit, UsedCount, ExpirationDate, Status, CreatedBy, CreatedDate)
+                    VALUES (?, ?, ?, ?, 0, ?, 'active', ?, ?)
+                """
+                db_manager.execute_query(insert_query, [
+                    code, discount_type, discount_value, usage_limit,
+                    expiration_date, created_by, created_date
+                ])
+                generated_codes.append(code)
+
+            flash(f'Successfully generated {count} promo codes.', 'success')
+            return render_template('promo_codes.html', promo_codes=generated_codes)
+
+        except Exception as e:
+            flash(f'Error generating promo codes: {str(e)}', 'error')
+            return render_template('promo_codes.html', promo_codes=[])
+
+    # GET request - list existing promo codes (limit 50)
+    try:
+        promo_codes = db_manager.execute_query("""
+            SELECT PromoCodeID, Code, DiscountType, DiscountValue, UsageLimit, UsedCount, ExpirationDate, Status
+            FROM promo_codes
+            ORDER BY CreatedDate DESC
+            LIMIT 50
+        """)
+    except Exception as e:
+        promo_codes = []
+        flash(f'Error loading promo codes: {str(e)}', 'error')
+
+    return render_template('promo_codes.html', promo_codes=promo_codes)
+
+@app.route('/api/validate_promo_code', methods=['POST'])
+def validate_promo_code():
+    data = request.get_json()
+    code = data.get('code', '').strip().upper()
+
+    if not code:
+        return jsonify({'valid': False, 'error': 'Promo code is required'})
+
+    try:
+        result = db_manager.execute_query("""
+            SELECT PromoCodeID, DiscountType, DiscountValue, UsageLimit, UsedCount, ExpirationDate, Status
+            FROM promo_codes
+            WHERE Code = ? AND Status = 'active'
+        """, [code])
+
+        if not result:
+            return jsonify({'valid': False, 'error': 'Invalid or inactive promo code'})
+
+        promo = result[0]
+
+        # Check usage limit
+        if promo[4] >= promo[3]:
+            return jsonify({'valid': False, 'error': 'Promo code usage limit reached'})
+
+        # Check expiration
+        if promo[5] and datetime.now().date() > promo[5]:
+            return jsonify({'valid': False, 'error': 'Promo code expired'})
+
+        return jsonify({
+            'valid': True,
+            'discount_type': promo[1],
+            'discount_value': promo[2]
+        })
+
+    except Exception as e:
+        return jsonify({'valid': False, 'error': f'Error validating promo code: {str(e)}'})
+
 
 # Flask-Mail configuration
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -285,7 +409,7 @@ def edit_member(member_id):
                 [username, email, first_name, last_name, phone, bio, profile_picture, location, member_id]
             )
 
-            if result > 0:
+            if result:
                 flash('Member updated successfully!', 'success')
                 return redirect(url_for('members'))
             else:
@@ -392,7 +516,7 @@ def edit_vehicle(vehicle_id):
             [make, model, year, color, license_plate, description, vehicle_id]
         )
         
-        if result > 0:
+        if result:
             flash('Vehicle updated successfully!', 'success')
             return redirect(url_for('vehicles'))
         else:
@@ -411,7 +535,29 @@ def edit_vehicle(vehicle_id):
 def places():
     try:
         places = db_manager.execute_query("SELECT * FROM places")
-        return render_template('places.html', places=places)
+        # Prepare map links for each place if latitude and longitude are available
+        places_with_links = []
+        for place in places:
+            lat = None
+            lon = None
+            # Assuming Latitude is at index 5 and Longitude at index 6 based on schema
+            if len(place) > 6:
+                lat = place[5]
+                lon = place[6]
+            map_link = None
+            if lat is not None and lon is not None:
+                map_link = f"https://www.google.com/maps?q={lat},{lon}"
+            places_with_links.append({
+                'id': place[0],
+                'name': place[1],
+                'address': place[2],
+                'type': place[3],
+                'description': place[4],
+                'latitude': lat,
+                'longitude': lon,
+                'map_link': map_link
+            })
+        return render_template('places.html', places=places_with_links)
     except Exception as e:
         logger.error(f"Places error: {e}")
     return render_template('places.html', places=[])
@@ -458,36 +604,7 @@ def events():
         logger.error(f"Events error: {e}")
     return render_template('events.html', events=[], search='', filter='', upcoming_events_count=0, past_events_count=0)
 
-@app.route('/event_detail/<int:event_id>')
-def event_detail(event_id):
-    try:
-        event = db_manager.execute_query("SELECT * FROM events WHERE EventID = ?", [event_id])
-        if event:
-            # Get attendee count
-            attendee_count = db_manager.execute_query(
-                "SELECT COUNT(*) FROM event_attendees WHERE EventID = ?",
-                [event_id]
-            )[0][0]
 
-            # Get creator info
-            creator = db_manager.execute_query(
-                "SELECT FirstName, LastName FROM members WHERE MemberID = ?",
-                [event[0][6]]  # CreatedBy field
-            )
-
-            creator_name = f"{creator[0][0]} {creator[0][1]}" if creator else "Unknown"
-
-            return render_template('event_detail.html',
-                                 event=event[0],
-                                 attendee_count=attendee_count,
-                                 creator_name=creator_name)
-        else:
-            flash('Event not found', 'error')
-            return redirect(url_for('events'))
-    except Exception as e:
-        logger.error(f"Event detail error for event ID {event_id}: {e}")
-        flash('Error retrieving event details', 'error')
-        return redirect(url_for('events'))
 
 @app.route('/add_vehicle', methods=['GET', 'POST'])
 @require_permission('manage_vehicles')
@@ -553,7 +670,7 @@ def add_vehicle():
                 [session['user_id'], make, model, year, color, license_plate, description, current_date]
             )
             
-            if result > 0:
+            if result:
                 flash(f'Vehicle "{make} {model}" registered successfully! You can add another vehicle below.', 'success')
                 # Clear form data by redirecting back to add_vehicle
                 return redirect(url_for('add_vehicle'))
@@ -579,6 +696,14 @@ def add_event():
             event_date = request.form.get('event_date')
             event_time = request.form.get('event_time')
             max_attendees_str = request.form.get('max_attendees', '50').strip()
+
+            # Format event_time to include seconds for database compatibility
+            try:
+                event_time_obj = datetime.strptime(event_time, '%H:%M')
+                event_time = event_time_obj.strftime('%H:%M:%S')
+            except ValueError:
+                flash('Invalid time format. Please use HH:MM format.', 'error')
+                return redirect(url_for('add_event'))
 
             # Validate required fields
             if not all([title, description, place_id, event_date, event_time]):
@@ -619,7 +744,7 @@ def add_event():
                 [title, description, location, event_date, event_time, max_attendees, session['user_id'], current_date, place_id]
             )
 
-            if result > 0:
+            if result:
                 flash('Event created successfully! You can add another event below.', 'success')
                 # Clear form data by redirecting back to add_event
                 return redirect(url_for('add_event'))
@@ -720,7 +845,7 @@ def update_permissions():
                 [user_id, can_edit_members, can_post_events, can_manage_vehicles]
             )
 
-        if result > 0:
+        if result:
             logger.info(f"Permissions updated for user ID {user_id}")
             return jsonify({'success': True, 'message': 'Permissions updated successfully'})
         else:
@@ -868,7 +993,7 @@ def change_password():
                 [generate_password_hash(new_password), session['user_id']]
             )
             
-            if result > 0:
+            if result:
                 flash('Password changed successfully!', 'success')
                 return redirect(url_for('profile'))
             else:
@@ -931,6 +1056,58 @@ def ticket_dashboard():
     except Exception as e:
         logger.error(f"Ticket dashboard error: {e}")
         flash('Error loading ticket dashboard', 'error')
+        return redirect(url_for('dashboard'))
+
+@app.route('/events_dashboard')
+@login_required
+@require_permission('post_events')
+def events_dashboard():
+    """Display events dashboard with analytics and management - Admin Only"""
+    try:
+        # Get event statistics
+        total_events = db_manager.execute_query("SELECT COUNT(*) FROM events")[0][0]
+
+        upcoming_events = db_manager.execute_query(
+            "SELECT COUNT(*) FROM events WHERE EventDate >= DATE()"
+        )[0][0]
+
+        past_events = db_manager.execute_query(
+            "SELECT COUNT(*) FROM events WHERE EventDate < DATE()"
+        )[0][0]
+
+        # Get total RSVPs
+        total_rsvps = db_manager.execute_query("SELECT COUNT(*) FROM event_attendees")[0][0]
+
+        # Get events with attendee counts and place info
+        events = db_manager.execute_query("""
+            SELECT e.*,
+                   COALESCE(attendee_counts.attendee_count, 0) as attendee_count,
+                   p.Name as place_name,
+                   p.Address as place_address
+            FROM events e
+            LEFT JOIN (
+                SELECT EventID, COUNT(*) as attendee_count
+                FROM event_attendees
+                GROUP BY EventID
+            ) attendee_counts ON e.EventID = attendee_counts.EventID
+            LEFT JOIN places p ON e.PlaceID = p.PlaceID
+            ORDER BY e.EventDate DESC
+            LIMIT 20
+        """)
+
+        current_date = datetime.now().date()
+
+        return render_template('events_dashboard.html',
+                             total_events=total_events,
+                             upcoming_events=upcoming_events,
+                             past_events=past_events,
+                             total_rsvps=total_rsvps,
+                             events=events,
+                             current_date=current_date)
+
+    except Exception as e:
+        logger.error(f"Events dashboard error: {e}")
+        flash('Error loading events dashboard', 'error')
         return redirect(url_for('dashboard'))
 
 @app.route('/server_control', methods=['GET', 'POST'])
@@ -1047,16 +1224,41 @@ def add_place():
             address = request.form['address'].strip()
             place_type = request.form['type']
             description = request.form.get('description', '').strip()
+            latitude = request.form.get('latitude', '').strip()
+            longitude = request.form.get('longitude', '').strip()
 
             # Validate required fields
             if not all([name, address, place_type]):
                 flash('Please fill in all required fields', 'error')
                 return redirect(url_for('add_place'))
 
+            # Convert latitude and longitude to float if provided
+            lat_val = None
+            lon_val = None
+            if latitude:
+                try:
+                    lat_val = float(latitude)
+                    if not (-90 <= lat_val <= 90):
+                        flash('Latitude must be between -90 and 90', 'error')
+                        return redirect(url_for('add_place'))
+                except ValueError:
+                    flash('Invalid latitude format', 'error')
+                    return redirect(url_for('add_place'))
+
+            if longitude:
+                try:
+                    lon_val = float(longitude)
+                    if not (-180 <= lon_val <= 180):
+                        flash('Longitude must be between -180 and 180', 'error')
+                        return redirect(url_for('add_place'))
+                except ValueError:
+                    flash('Invalid longitude format', 'error')
+                    return redirect(url_for('add_place'))
+
             # Insert new place
             insert_query = """
-                INSERT INTO places (Name, Address, Type, Description, AddedBy, AddedDate)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO places (Name, Address, Type, Description, Latitude, Longitude, AddedBy, AddedDate)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """
 
             from datetime import datetime
@@ -1064,10 +1266,10 @@ def add_place():
 
             result = db_manager.execute_query(
                 insert_query,
-                [name, address, place_type, description, session['user_id'], current_date]
+                [name, address, place_type, description, lat_val, lon_val, session['user_id'], current_date]
             )
 
-            if result > 0:
+            if result:
                 flash(f'Place "{name}" added successfully! You can add another place below.', 'success')
                 # Clear form data by redirecting back to add_place
                 return redirect(url_for('add_place'))
@@ -1187,7 +1389,7 @@ def reset_password(token):
                 [hashed_password, token_data['user_id']]
             )
 
-            if result > 0:
+            if result:
                 # Remove used token
                 del reset_tokens[token]
                 flash('Password has been reset successfully! You can now log in with your new password.', 'success')
@@ -1202,14 +1404,223 @@ def reset_password(token):
 
     return render_template('reset_password.html', token=token)
 
+def generate_ssm_card(role, member_name, signature, birthdate, member_id, car_photo, plate='', model='', reason=''):
+    """Generate SSM card images using PIL"""
+    # Card dimensions (standard ID card size)
+    width, height = 300, 180
+
+    # Create front card
+    front_card = Image.new('RGB', (width, height), 'black')
+    front_draw = ImageDraw.Draw(front_card)
+
+    # Load fonts (using default if Orbitron not available)
+    try:
+        title_font = ImageFont.truetype("Orbitron-Bold.ttf", 24)
+        text_font = ImageFont.truetype("arial.ttf", 12)
+    except:
+        title_font = ImageFont.load_default()
+        text_font = ImageFont.load_default()
+
+    # Front card design
+    # Metallic accent stripe
+    if role == 'OWNER':
+        accent_color = (255, 215, 0)  # Gold
+    elif role == 'DRIVER':
+        accent_color = (192, 192, 192)  # Silver
+    else:  # HONORARY_GUEST
+        accent_color = (50, 205, 50)  # Green
+
+    front_draw.rectangle([0, 0, width, 30], fill=accent_color)
+
+    # Role name
+    front_draw.text((width//2, 45), role.replace('_', ' '), fill='white', font=title_font, anchor='mm')
+
+    # Signature space
+    front_draw.text((width//2, height-20), f"Signature: {signature}", fill='white', font=text_font, anchor='mm')
+
+    # Create back card
+    back_card = Image.new('RGB', (width, height), (20, 20, 20))
+    back_draw = ImageDraw.Draw(back_card)
+
+    # Process car photo
+    if car_photo:
+        try:
+            car_image = Image.open(car_photo)
+            car_image = car_image.resize((int(width * 0.6), int(height * 0.6)))
+            back_card.paste(car_image, (10, 10))
+        except Exception as e:
+            logger.error(f"Error processing car photo: {e}")
+
+    # SSM watermark
+    back_draw.text((width-30, 10), 'SSM', fill=(255, 255, 255, 50), font=title_font)
+
+    # Member information based on role
+    info_y = height - 80
+    back_draw.text((10, info_y), f"Name: {member_name}", fill='white', font=text_font)
+    info_y += 15
+    back_draw.text((10, info_y), f"Birthdate: {birthdate}", fill='white', font=text_font)
+    info_y += 15
+    back_draw.text((10, info_y), f"ID: {member_id}", fill='white', font=text_font)
+
+    if role == 'DRIVER':
+        info_y += 15
+        back_draw.text((10, info_y), f"Plate: {plate}", fill='white', font=text_font)
+        info_y += 15
+        back_draw.text((10, info_y), f"Model: {model}", fill='white', font=text_font)
+    elif role == 'HONORARY_GUEST':
+        info_y += 15
+        back_draw.text((10, info_y), f"Reason: {reason}", fill='white', font=text_font)
+
+    return front_card, back_card
+
+@app.route('/download_cards')
+@login_required
+def download_cards():
+    """Serve generated card images for download"""
+    front_path = session.get('card_front')
+    back_path = session.get('card_back')
+
+    if not front_path or not back_path:
+        flash('No cards available for download', 'error')
+        return redirect(url_for('create_cards'))
+
+    try:
+        # Create ZIP file with both cards
+        zip_buffer = io.BytesIO()
+
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            zip_file.write(front_path, 'front_card.png')
+            zip_file.write(back_path, 'back_card.png')
+
+        zip_buffer.seek(0)
+
+        # Clean up temporary files
+        try:
+            os.remove(front_path)
+            os.remove(back_path)
+        except:
+            pass
+
+        # Clear session
+        session.pop('card_front', None)
+        session.pop('card_back', None)
+
+        return send_file(
+            zip_buffer,
+            mimetype='application/zip',
+            as_attachment=True,
+            download_name='ssm_cards.zip'
+        )
+
+    except Exception as e:
+        logger.error(f"Download error: {e}")
+        flash('Error downloading cards', 'error')
+        return redirect(url_for('create_cards'))
+
+@app.route('/create_cards', methods=['GET', 'POST'])
+@login_required
+def create_cards():
+    """Handle SSM card creation"""
+    if request.method == 'POST':
+        try:
+            # Get form data
+            role = request.form.get('role')
+            car_photo = request.files.get('car_photo')
+            member_name = request.form.get('member_name')
+            signature = request.form.get('signature')
+            birthdate = request.form.get('birthdate')
+            member_id = request.form.get('member_id')
+            plate = request.form.get('plate', '')
+            model = request.form.get('model', '')
+            reason = request.form.get('reason', '')
+
+            # Validate required fields
+            if not all([role, car_photo, member_name, signature, birthdate, member_id]):
+                flash('All required fields must be filled', 'error')
+                return redirect(url_for('create_cards'))
+
+            # Validate role-specific fields
+            if role == 'DRIVER' and not all([plate, model]):
+                flash('License plate and model are required for drivers', 'error')
+                return redirect(url_for('create_cards'))
+
+            if role == 'HONORARY_GUEST' and not reason:
+                flash('Reason is required for guest status', 'error')
+                return redirect(url_for('create_cards'))
+
+            # Generate card images
+            front_image, back_image = generate_ssm_card(
+                role=role,
+                member_name=member_name,
+                signature=signature,
+                birthdate=birthdate,
+                member_id=member_id,
+                car_photo=car_photo,
+                plate=plate,
+                model=model,
+                reason=reason
+            )
+
+            # Save images temporarily
+            temp_dir = tempfile.mkdtemp()
+            front_path = os.path.join(temp_dir, 'front.png')
+            back_path = os.path.join(temp_dir, 'back.png')
+
+            front_image.save(front_path)
+            back_image.save(back_path)
+
+            # Store paths in session for download
+            session['card_front'] = front_path
+            session['card_back'] = back_path
+
+            flash('Cards generated successfully!', 'success')
+            return redirect(url_for('download_cards'))
+
+        except Exception as e:
+            logger.error(f"Card generation error: {e}")
+            flash('Error generating cards. Please try again.', 'error')
+            return redirect(url_for('create_cards'))
+
+    return render_template('create_cards.html')
+
 if __name__ == '__main__':
     # Configure Flask for external access (important for tunnels)
     app.config['SESSION_COOKIE_SECURE'] = False  # Allow HTTP for tunnels
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
-    # Run with threaded=True for better tunnel compatibility
-    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)
+    # DuckDNS update function
+    def update_duckdns():
+        """Update DuckDNS with current IP address"""
+        try:
+            duckdns_token = '4b5d2630-194e-49f0-bd46-bc17f7729b36'
+            domain = 'sulistreetmeet'
+
+            # Get current IP address (IPv4)
+            response = requests.get('https://api.ipify.org?format=json', timeout=10)
+            current_ip = response.json()['ip']
+
+            # Update DuckDNS
+            update_url = f'https://www.duckdns.org/update?domains={domain}&token={duckdns_token}&ip={current_ip}'
+            update_response = requests.get(update_url, timeout=10)
+
+            if update_response.text.strip() == 'OK':
+                logger.info(f"DuckDNS updated successfully: {domain}.duckdns.org -> {current_ip}")
+                return True
+            else:
+                logger.error(f"DuckDNS update failed: {update_response.text}")
+                return False
+
+        except Exception as e:
+            logger.error(f"Error updating DuckDNS: {e}")
+            return False
+
+    # Update DuckDNS on startup
+    logger.info("Updating DuckDNS on startup...")
+    update_duckdns()
+
+    # Run with threaded=True for better tunnel compatibility and IPv6 support
+    app.run(debug=True, host='::', port=5000, threaded=True)
 
 
 

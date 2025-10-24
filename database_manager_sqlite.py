@@ -72,7 +72,7 @@ class SQLiteDatabaseManager:
                     Description TEXT NOT NULL,
                     Location TEXT NOT NULL,
                     EventDate TEXT NOT NULL,
-                    EventTime TEXT NOT NULL,
+                    EventTime TEXT,
                     MaxAttendees INTEGER DEFAULT 50,
                     CreatedBy INTEGER NOT NULL,
                     CreatedDate TEXT DEFAULT CURRENT_DATE,
@@ -89,6 +89,8 @@ class SQLiteDatabaseManager:
                     Address TEXT NOT NULL,
                     Type TEXT NOT NULL,
                     Description TEXT,
+                    Latitude REAL,
+                    Longitude REAL,
                     AddedBy INTEGER NOT NULL,
                     AddedDate TEXT DEFAULT CURRENT_DATE,
                     FOREIGN KEY (AddedBy) REFERENCES members (MemberID)
@@ -173,6 +175,10 @@ class SQLiteDatabaseManager:
             return len(result) > 0
         except:
             return False
+
+    def check_table_exists(self, table_name):
+        """Check if a table exists (alias for table_exists)"""
+        return self.table_exists(table_name)
 
     def register_user(self, username, email, password, first_name, last_name):
         """Register a new user"""

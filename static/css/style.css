@@ -516,9 +516,23 @@ body {
 /* Notification Bell */
 .notification-bell-container {
     position: fixed;
-    top: 15px;
+    top: 90px;
     right: 20px;
     z-index: 10000;
+}
+
+/* Ensure dropdown menus appear above notification bell */
+.dropdown-menu {
+    z-index: 13000 !important;
+}
+
+/* Ensure notification bell doesn't interfere with navbar clicks */
+.notification-bell-container {
+    pointer-events: none;
+}
+
+.notification-bell {
+    pointer-events: auto;
 }
 
 .notification-bell {

@@ -1,18 +1,5 @@
-Flask==2.3.3
-Flask-SQLAlchemy==3.0.5
-Flask-Login==0.6.3
-Werkzeug==2.3.7
-python-dotenv==1.0.0
-gunicorn==21.2.0
-requests==2.31.0
-qrcode==7.4.2
+Flask==3.0.0
 Flask-Mail==0.9.1
-
-# Database dependencies (hybrid approach)
-# For local development (MS Access):
-# pywin32==306
-# sqlalchemy-access==2.0.1
-# jaydebeapi==1.2.0
-
-# For deployment (SQLite):
-# No additional dependencies needed - SQLite is built into Python
+Werkzeug==3.0.1
+Pillow==10.0.1
+python-dotenv

@@ -83,16 +83,16 @@
                             {% if vehicles %}
                                 {% for vehicle in vehicles %}
                                 <tr>
-                                    <td>{{ vehicle.make or 'N/A' }}</td>
-                                    <td>{{ vehicle.model or 'N/A' }}</td>
-                                    <td>{{ vehicle.year or 'N/A' }}</td>
-                                    <td>{{ vehicle.color or 'N/A' }}</td>
-                                    <td>{{ vehicle.owner_name or 'Unknown' }}</td>
+                                    <td>{{ vehicle[2] or 'N/A' }}</td>
+                                    <td>{{ vehicle[3] or 'N/A' }}</td>
+                                    <td>{{ vehicle[4] or 'N/A' }}</td>
+                                    <td>{{ vehicle[5] or 'N/A' }}</td>
+                                    <td>{{ vehicle[9] }} {{ vehicle[10] }}</td>
                                     <td>
-                                        <a href="{{ url_for('vehicle_detail', vehicle_id=vehicle.id) }}" class="btn btn-sm btn-info">
+                                        <a href="{{ url_for('vehicle_detail', vehicle_id=vehicle[0]) }}" class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i> View
                                         </a>
-                                        <a href="{{ url_for('edit_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-sm btn-warning">
+                                        <a href="{{ url_for('edit_vehicle', vehicle_id=vehicle[0]) }}" class="btn btn-sm btn-warning">
                                             <i class="fas fa-edit"></i> Edit
                                         </a>
                                     </td>

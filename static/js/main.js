@@ -472,3 +472,84 @@ function animateNumber(element, start, end, duration) {
 
     requestAnimationFrame(update);
 }
+
+// Bootstrap Dropdown Initialization and Fallback
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('Initializing Bootstrap dropdowns...');
+
+    // Check if Bootstrap is loaded
+    if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap not loaded! Dropdowns will not work.');
+        return;
+    }
+
+    // Initialize all dropdowns explicitly
+    const dropdownElements = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+    console.log('Found dropdown toggles:', dropdownElements.length);
+
+    dropdownElements.forEach(function (dropdownEl, index) {
+        try {
+            // Initialize Bootstrap dropdown
+            const dropdown = new bootstrap.Dropdown(dropdownEl);
+            console.log('Dropdown initialized:', dropdownEl.id || `dropdown-${index}`);
+
+            // Add click event with fallback
+            dropdownEl.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const targetMenu = this.nextElementSibling;
+                if (!targetMenu || !targetMenu.classList.contains('dropdown-menu')) {
+                    console.error('No dropdown menu found for toggle:', this);
+                    return;
+                }
+
+                // Check if dropdown is already open
+                const isOpen = targetMenu.classList.contains('show');
+
+                // Close all other dropdowns first
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    if (menu !== targetMenu) {
+                        menu.classList.remove('show');
+                        const toggle = menu.previousElementSibling;
+                        if (toggle) toggle.classList.remove('show');
+                    }
+                });
+
+                // Toggle current dropdown
+                if (isOpen) {
+                    targetMenu.classList.remove('show');
+                    this.classList.remove('show');
+                    console.log('Closed dropdown:', this.id || `dropdown-${index}`);
+                } else {
+                    targetMenu.classList.add('show');
+                    this.classList.add('show');
+                    console.log('Opened dropdown:', this.id || `dropdown-${index}`);
+                }
+
+                // Try Bootstrap method as well
+                try {
+                    dropdown.toggle();
+                } catch (error) {
+                    console.warn('Bootstrap toggle failed, using manual fallback:', error);
+                }
+            });
+
+        } catch (error) {
+            console.error('Error initializing dropdown:', error);
+        }
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function (event) {
+        if (!event.target.closest('.dropdown')) {
+            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show');
+                const toggle = menu.previousElementSibling;
+                if (toggle) toggle.classList.remove('show');
+            });
+        }
+    });
+
+    console.log('Dropdown initialization complete');
+});

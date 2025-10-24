@@ -11,7 +11,22 @@
     transform: translateY(-2px);
     box-shadow: 0 0 30px rgba(0, 255, 65, 0.5), 0 8px 20px rgba(0, 0, 0, 0.3);
 }
+.map-container {
+    height: 200px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
 </style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+ integrity="sha256-sA+e2H1kP0p+v+gk5Q5bQ6k6Q5Q5Q5Q5Q5Q5Q5Q5Q5Q="
+ crossorigin=""/>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+ integrity="sha256-o9N1j6k6Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q5Q="
+ crossorigin=""></script>
+
 <div class="dashboard-section">
     <div class="container-fluid mt-5">
         <div class="row">
@@ -35,12 +50,22 @@
                     <div class="feature-icon">
                         <i class="fas fa-map-marker-alt"></i>
                     </div>
-                    <h4>{{ place[1] }}</h4>
-                    <p><strong>Address:</strong> {{ place[2] }}</p>
-                    <p>{{ place[3] }}</p>
-                    <a href="https://maps.google.com/?q={{ place[2] }}" target="_blank" class="btn btn-primary">
-                        <i class="fas fa-directions"></i> Get Directions
-                    </a>
+                    <h4>{{ place.name }}</h4>
+                    <p><strong>Address:</strong> {{ place.address }}</p>
+                    <p>{{ place.description }}</p>
+                    {% if place.latitude and place.longitude %}
+                    <div id="map-{{ loop.index }}" class="map-container mb-3"></div>
+                    {% endif %}
+                    <div class="d-flex gap-2">
+                        <a href="https://maps.google.com/?q={{ place.address }}" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-directions"></i> Get Directions
+                        </a>
+                        {% if place.map_link %}
+                        <a href="{{ place.map_link }}" target="_blank" class="btn btn-outline-success">
+                            <i class="fas fa-map-marked-alt"></i> View on Map
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
             {% else %}
@@ -67,4 +92,22 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    {% for place in places %}
+    {% if place.latitude and place.longitude %}
+    var map{{ loop.index }} = L.map('map-{{ loop.index }}').setView([{{ place.latitude }}, {{ place.longitude }}], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map{{ loop.index }});
+    L.marker([{{ place.latitude }}, {{ place.longitude }}]).addTo(map{{ loop.index }})
+        .bindPopup('<b>{{ place.name }}</b><br>{{ place.address }}')
+        .openPopup();
+    {% endif %}
+    {% endfor %}
+});
+</script>
+
 {% endblock %}

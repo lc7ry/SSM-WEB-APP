@@ -41,8 +41,13 @@
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tickets-tab" data-tab="tickets" type="button" role="tab" style="display:none;">
+                <button class="nav-link" id="tickets-tab" data-tab="tickets" type="button" role="tab">
                     <i class="fas fa-ticket-alt"></i> Tickets
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="events-tab" data-tab="events" type="button" role="tab">
+                    <i class="fas fa-calendar-alt"></i> Events
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -138,7 +143,7 @@
                     </div>
                     <h4>Create Event</h4>
                     <p>Schedule new community events</p>
-                    <a href="{{ url_for('events') }}" class="btn btn-primary">
+                    <a href="{{ url_for('add_event') }}" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Create Event
                     </a>
                 </div>
@@ -198,6 +203,13 @@
             </div>
         </div>
 
+        <!-- Events Tab -->
+        <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab" tabindex="0">
+            <div class="container">
+                {% include 'events_dashboard.html' %}
+            </div>
+        </div>
+
         <!-- Management Tab -->
         <div class="tab-pane fade" id="management" role="tabpanel" aria-labelledby="management-tab" tabindex="0">
             <div class="container">
@@ -205,7 +217,7 @@
                     <div class="col-12">
                         <h3 class="mb-4">System Management</h3>
                         <div class="row">
-                            <div class="col-md-6 mb-4">
+                            <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="feature-card">
                                     <div class="feature-icon">
                                         <i class="fas fa-users-cog"></i>
@@ -217,7 +229,7 @@
                                     </a>
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-4">
+                            <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="feature-card">
                                     <div class="feature-icon">
                                         <i class="fas fa-server"></i>
@@ -226,6 +238,66 @@
                                     <p>Control public/private server access</p>
                                     <a href="{{ url_for('server_control') }}" class="btn btn-primary">
                                         <i class="fas fa-globe"></i> Server Settings
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </div>
+                                    <h4>System Analytics</h4>
+                                    <p>View detailed statistics and user activity logs</p>
+                                    <a href="{{ url_for('system_analytics.system_analytics') }}" class="btn btn-primary">
+                                        <i class="fas fa-chart-line"></i> View Analytics
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-database"></i>
+                                    </div>
+                                    <h4>Database Management</h4>
+                                    <p>Backup, restore, and maintain database</p>
+                                    <a href="#" class="btn btn-primary" onclick="alert('Database Management feature coming soon!')">
+                                        <i class="fas fa-database"></i> Manage Database
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-tags"></i>
+                                    </div>
+                                    <h4>Promo Code Management</h4>
+                                    <p>Create and manage promotional codes</p>
+                                    <a href="{{ url_for('promo_codes') }}" class="btn btn-primary">
+                                        <i class="fas fa-tags"></i> Manage Codes
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-heartbeat"></i>
+                                    </div>
+                                    <h4>System Health Monitor</h4>
+                                    <p>Monitor server status and resources</p>
+                                    <a href="#" class="btn btn-primary" onclick="alert('System Health Monitor feature coming soon!')">
+                                        <i class="fas fa-heartbeat"></i> Check Health
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <h4>Email Configuration</h4>
+                                    <p>Manage email settings and test functionality</p>
+                                    <a href="#" class="btn btn-primary" onclick="alert('Email Configuration feature coming soon!')">
+                                        <i class="fas fa-envelope"></i> Configure Email
                                     </a>
                                 </div>
                             </div>
@@ -386,6 +458,24 @@
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 255, 65, 0.4);
+}
+
+.btn-danger {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+    background: linear-gradient(45deg, #c82333, #a02622);
 }
 
 /* Counter animation */
