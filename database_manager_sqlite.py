@@ -11,7 +11,11 @@ logger = logging.getLogger(__name__)
 class SQLiteDatabaseManager:
     def __init__(self):
         self.current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.db_path = os.path.join(self.current_dir, 'carmeet_community.db')
+        # Use local AppData directory instead of OneDrive to avoid sync issues
+        local_appdata = os.path.join(os.path.expanduser('~'), 'AppData', 'Local')
+        db_dir = os.path.join(local_appdata, 'CarMeetCommunity')
+        os.makedirs(db_dir, exist_ok=True)
+        self.db_path = os.path.join(db_dir, 'carmeet_community.db')
         self.initialize_database()
 
     def initialize_database(self):
@@ -134,6 +138,8 @@ class SQLiteDatabaseManager:
         conn = None
         try:
             conn = sqlite3.connect(self.db_path)
+            # Enable foreign keys for this connection
+            conn.execute("PRAGMA foreign_keys = ON")
             logger.info("SQLite database connection established")
             yield conn
         except Exception as e:
